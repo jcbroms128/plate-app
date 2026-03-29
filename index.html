@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  PLATE — HOUSEHOLD MEAL PLANNER
+  ============================================================
+  VERSION HISTORY
+  ============================================================
+  v4.13 — 2026-03-25
+    WHAT'S NEW:
+    1. Plan persistence:
+       • Current plan, shopping list, and prep guide now
+         saved to localStorage — survive page reload,
+         tab close, and version switches.
+    2. Weekly history log (new screen):
+       • Auto-saves current week when "New week" or
+         "Generate plan" is tapped.
+       • Each archived week shows: date range, meals
+         with day/rating/notes, estimated vs actual spend,
+         who cooked, and a household notes field.
+       • Tap any meal name in history to pre-fill it
+         into next week's context for AI re-use.
+       • History screen accessible from gear icon / settings
+         and from the plan screen.
+       • Actual spend entry field per week (manual).
+       • Up to 52 weeks stored in localStorage.
+
+  ============================================================
+  v4.12 — 2026-03-20
+    WHAT'S NEW:
+    1. Meal Prep Guide (new screen):
+       • "Prep guide" button appears on plan screen when a
+         meal prep day is set in Profile settings.
+       • AI generates a task-organized prep list based on
+         the actual week's meals — not generic advice.
+       • Four sections: Cook & Store, Chop & Portion,
+         Marinate, Make Ahead.
+       • Each task references which meals it supports
+         (e.g. "Cook brown rice → Monday dinner + Wed lunch").
+       • Checkable tasks, same pattern as shopping list.
+       • Loading state and back-to-plan navigation.
+
+  ============================================================
+  v4.13 — 2026-03-25
+    WHAT'S NEW:
+    1. Plan persistence:
+       • Current plan, shopping list, and prep guide now
+         saved to localStorage — survive page reload,
+         tab close, and version switches.
+    2. Weekly history log (new screen):
+       • Auto-saves current week when "New week" or
+         "Generate plan" is tapped.
+       • Each archived week shows: date range, meals
+         with day/rating/notes, estimated vs actual spend,
+         who cooked, and a household notes field.
+       • Tap any meal name in history to pre-fill it
+         into next week's context for AI re-use.
+       • History screen accessible from gear icon / settings
+         and from the plan screen.
+       • Actual spend entry field per week (manual).
+       • Up to 52 weeks stored in localStorage.
+
+  ============================================================
+  v4.12 — 2026-03-20
+    WHAT'S NEW:
+    1. Meal Prep Guide (new screen):
+       • "Prep guide" button appears on plan screen when a
+         meal prep day is set in Profile settings.
+       • AI generates a task-organized prep list based on
+         the actual week's meals — not generic advice.
+       • Four sections: Cook & Store, Chop & Portion,
+         Marinate, Make Ahead.
+       • Each task references which meals it supports.
+       • Checkable tasks, copy button, same pattern as
+         shopping list.
+    2. Amazon Fresh per-category price calibration:
+       • Real invoice data from Mountain View order used to
+         build category-level multipliers for Amazon Fresh.
+       • Proteins: 1.30x (beef runs ~$19/lb, well above AI
+         estimates of $10-14/lb).
+       • Produce: 1.20x (organic premium is consistent).
+       • Dairy & Eggs: 1.15x (organic dairy significantly
+         higher than conventional AI estimates).
+       • Pantry & Grains: 1.05x (AI estimates accurate here).
+       • Other: 1.10x (specialty snacks skew high).
+       • Applied only when Amazon Fresh is the active store.
+
+  ============================================================
+  v4.11 — 2026-03-20
+    WHAT'S NEW:
+    1. Breakfast repeat rule removed:
+       • Hardcoded "every breakfast must be different" rule
+         removed from AI prompt. User instructions in the
+         week context field now win — if you ask for 1-3
+         repeated breakfasts to reduce grocery waste, the
+         AI will follow that instruction.
+    2. Member-specific week context handling strengthened:
+       • AI prompt now explicitly instructs the model to
+         parse member names from week context notes and
+         apply nutrition/meal adjustments per person per day.
+       • e.g. "Ryan long run Saturday" reliably triggers
+         performance fueling for Ryan on Saturday.
+
+  ============================================================
+  v4.10 — 2026-03-20
+    WHAT'S NEW:
+    1. Recipe notes ("Notes for next time"):
+       • Text box at the bottom of every recipe screen.
+       • Auto-saves as you type — no button needed.
+       • Persists in localStorage indefinitely alongside
+         the existing thumbs up/down rating.
+       • Clear button (x) removes the note for that recipe.
+       • All saved notes fed into the AI prompt on next plan
+         generation so the app learns household preferences.
+       • "Recipe notes" section added to Settings showing all
+         saved notes with individual and bulk clear options.
+
+  ============================================================
+  v4.9 — 2026-03-20
+    WHAT'S NEW:
+    1. Recipe scaling fix:
+       • Base serving count now robustly parsed from AI response
+         strings like "Serves 4", "4 servings", "Makes 6", etc.
+       • Ratio math is bulletproof across the full 1–16 range.
+       • Ingredients scale correctly at every step.
+    2. Food preferences moved to member cards (member-first model):
+       • "Foods to avoid" and "Dietary needs" removed from
+         household-level Profile settings card.
+       • Both fields now live on each member's individual card
+         (add form + edit view in Profile).
+       • AI prompt now reads dislikes/dietary needs per member.
+    3. Appliances consolidated to member cards only:
+       • Household-level "Appliances" field removed from Profile.
+       • Member appliance field remains under "Can cook" section
+         on each member card — labelled "Appliances I use".
+       • AI prompt reads appliances from member data only.
+
+  ============================================================
+  v4.8 — 2026-03-20
+    WHAT'S NEW:
+    1. Simplified onboarding (progressive disclosure):
+       • First-time setup: 3 steps only — who's in your household,
+         foods to avoid, how many eating dinner.
+       • Advanced settings (schedules, appliances, cook time,
+         meal prep day, stores) only shown after first plan is
+         generated, via Profile/Settings.
+       • setupComplete flag drives which setup view is shown.
+    2. Members on main page — read-only after setup:
+       • Main screen shows compact member summary after setup.
+       • Edit only available in Profile (gear icon).
+    3. Nutrition Profile replaces "Energy Archetype":
+       • Renamed throughout UI and AI prompts.
+       • Tap-to-select cards replace dropdown — each card shows
+         the profile name + one-line description inline.
+    4. Food preferences + Cooking preferences removed from main page:
+       • Only live in Profile settings.
+    5. Save profile bottom button now flips to "Saved!":
+       • Both top and bottom Save buttons now confirm visually.
+    6. Servings color change removed:
+       • Override no longer turns red — just shows the number.
+    7. "Can cook" checkbox bug fixed:
+       • Now visible immediately when adding a new member,
+         no Save required to see it.
+    8. Meals per day selector:
+       • Per-day meal toggles on the plan screen itself
+         (remove a meal type from a specific day via the day view).
+
+  ============================================================
+  v4.7.1 — 2026-03-20
+    • CORS proxy fix (corsproxy.io)
+
+  v4.7 — 2026-03-19
+    • Shopping list accuracy, likely-have section, qty caps,
+      pricing disclaimer, archetype hints, member notes
+
+  v4.6 — 2026-03-19
+    • Appliance-aware planning, store toggle instant recalc,
+      location multiplier reduced, sandbox fix
+
+  v4.0–v4.3 — 2026-03-18
+    • Initial release + terminology + cost engine + cook volunteers
+  ============================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plate — Meal Planner v4.14</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cream: #F7F4EF; --warm-white: #FDFCFA; --ink: #1C1A17; --ink-light: #6B6760; --ink-faint: #B0ADA8;
+    --accent: #C85A2A; --accent-light: #F2E8E2; --accent-dark: #9e4420;
+    --border: rgba(28,26,23,0.1); --border-med: rgba(28,26,23,0.18); --radius: 12px; --radius-sm: 8px;
+    --green: #3A6B4A; --green-light: #E4EFE7;
+    --likely: #EFF6EE; --likely-border: rgba(58,107,74,0.2); --likely-text: #3A6B4A;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; font-size: 15px; }
+  .shell { max-width: 640px; margin: 0 auto; padding: 0 24px 80px; }
+  header { padding: 40px 0 32px; display: flex; align-items: flex-start; justify-content: space-between; }
+  .logo { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 300; letter-spacing: -0.5px; }
+  .logo em { font-style: italic; color: var(--accent); }
+  .tagline { font-size: 13px; color: var(--ink-faint); margin-top: 4px; }
+  .settings-btn { background: none; border: none; cursor: pointer; padding: 4px; margin-top: 6px; color: var(--ink-faint); font-size: 22px; line-height: 1; transition: color .15s; }
+  .settings-btn:hover { color: var(--accent); }
+  .card { background: var(--warm-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 14px; }
+  .sec-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.7px; color: var(--ink-light); margin-bottom: 12px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--ink-light); margin-bottom: 6px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 10px 14px; border: 1px solid var(--border-med); border-radius: var(--radius-sm); background: var(--cream); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color .15s; }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .add-form { background: var(--cream); border: 1px dashed var(--border-med); border-radius: var(--radius-sm); padding: 16px; margin-top: 10px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border: none; }
+  .btn-primary { background: var(--ink); color: var(--warm-white); }
+  .btn-primary:hover { background: #2d2b27; }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-accent:hover { background: var(--accent-dark); }
+  .btn-outline { background: transparent; border: 1px solid var(--border-med); color: var(--ink-light); }
+  .btn-outline:hover { border-color: var(--ink-light); color: var(--ink); }
+  .btn-sm { padding: 7px 14px; font-size: 13px; }
+  .btn-ghost { background: none; border: none; color: var(--ink-light); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; padding: 0; }
+  .btn-ghost:hover { color: var(--accent); }
+  .btn-add { background: none; border: 1px dashed var(--border-med); color: var(--ink-light); border-radius: var(--radius-sm); padding: 8px 16px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; width: 100%; margin-top: 8px; transition: all .15s; }
+  .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-full { width: 100%; justify-content: center; padding: 13px; font-size: 15px; }
+  .btn-active { background: var(--ink) !important; color: var(--warm-white) !important; border-color: var(--ink) !important; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { padding: 6px 16px; border-radius: 999px; font-size: 13px; cursor: pointer; border: 1px solid var(--border-med); background: var(--cream); color: var(--ink-light); transition: all .15s; user-select: none; }
+  .tag.sel { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+  .api-banner { background: #FBF3DC; border: 1px solid rgba(184,134,11,0.25); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: var(--ink); line-height: 1.5; margin-bottom: 14px; }
+  .api-banner a { color: #B8860B; }
+  .loading { text-align: center; padding: 3rem 0; }
+  .dots { display: inline-flex; gap: 6px; margin-bottom: 12px; }
+  .dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: bop .9s infinite; }
+  .dots span:nth-child(2) { animation-delay: .15s; }
+  .dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bop { 0%,100%{transform:translateY(0);opacity:.4} 50%{transform:translateY(-6px);opacity:1} }
+  .loading-text { font-size: 14px; color: var(--ink-light); }
+  .week-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .day-block { margin-bottom: 18px; }
+  .day-name { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.7px; color: var(--ink-light); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .event-pill { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: var(--accent-light); color: var(--accent); border: 1px solid rgba(200,90,42,0.3); font-weight: 400; text-transform: none; letter-spacing: 0; }
+  .meal-name { font-size: 13px; color: var(--ink); line-height: 1.4; font-weight: 500; }
+  .meal-note { font-size: 11px; color: var(--ink-light); margin-top: 4px; line-height: 1.4; }
+  .mab { background: none; border: none; font-size: 12px; color: var(--ink-faint); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .15s; }
+  .mab:hover { color: var(--accent); background: var(--accent-light); }
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+  .recipe-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 300; margin-bottom: 6px; }
+  .recipe-meta { font-size: 13px; color: var(--ink-light); margin-bottom: 20px; }
+  .r-sec { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--ink-light); margin: 18px 0 10px; }
+  .ing-list { list-style: none; }
+  .ing-list li { font-size: 14px; color: var(--ink); padding: 6px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+  .ing-list li:last-child { border-bottom: none; }
+  .step-list { list-style: none; }
+  .step-list li { display: flex; gap: 12px; margin-bottom: 12px; font-size: 14px; line-height: 1.6; color: var(--ink); }
+  .step-num { min-width: 24px; height: 24px; background: var(--accent-light); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
+  .tip-box { background: var(--cream); border-left: 3px solid var(--accent); padding: 12px 16px; font-size: 13px; color: var(--ink-light); line-height: 1.6; margin-top: 4px; }
+  .check-box { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .15s; }
+  .shop-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .shop-row:last-child { border-bottom: none; }
+  .shop-item { font-size: 14px; color: var(--ink); }
+  .err { background: #FCEBEB; border: 1px solid #F09595; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: #A32D2D; margin-bottom: 14px; }
+  .fade-in { animation: fadeIn .3s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .inline-input { padding: 9px 12px; border: 1px solid var(--border-med); border-radius: var(--radius-sm); background: var(--cream); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--ink); outline: none; transition: border-color .15s; }
+  .inline-input:focus { border-color: var(--accent); }
+  /* v4.8 — Nutrition Profile cards */
+  .np-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+  .np-card { padding: 10px 12px; border: 1.5px solid var(--border-med); border-radius: var(--radius-sm); cursor: pointer; transition: all .15s; background: var(--cream); }
+  .np-card:hover { border-color: var(--accent); }
+  .np-card.sel { border-color: var(--accent); background: var(--accent-light); }
+  .np-card-name { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+  .np-card.sel .np-card-name { color: var(--accent); }
+  .np-card-desc { font-size: 11px; color: var(--ink-light); line-height: 1.4; }
+  .np-card.sel .np-card-desc { color: var(--accent-dark); }
+  /* v4.8 — likely-have section */
+  .likely-section { background: var(--likely); border: 1px solid var(--likely-border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 14px; }
+  .likely-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.7px; color: var(--likely-text); margin-bottom: 4px; }
+  .likely-sublabel { font-size: 12px; color: var(--likely-text); opacity: 0.7; margin-bottom: 12px; }
+  .likely-row { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--likely-border); cursor: pointer; }
+  .likely-row:last-child { border-bottom: none; }
+  /* v4.8 — member summary pill row */
+  .member-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--warm-white); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+  .member-pill-name { font-weight: 500; color: var(--ink); }
+  .member-pill-np { font-size: 11px; color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div>
+      <div class="logo">p<em>l</em>ate</div>
+      <div class="tagline">meal planning for any household</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+      <button onclick="openFeedback()" style="background:none;border:1px solid var(--border-med);border-radius:999px;cursor:pointer;padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink-light);transition:all .15s;">Feedback</button>
+      <button class="settings-btn" onclick="goProfile()" title="Profile &amp; settings">⚙</button>
+    </div>
+  </header>
+  <div id="app"></div>
+</div>
+<script>
+// ── Safe Storage ──
+var _mem = {};
+function lsGet(k,d) { try { var v=localStorage.getItem(k); return v!==null?v:d; } catch(e){ return _mem[k]!==undefined?_mem[k]:d; } }
+function lsSet(k,v) { try { localStorage.setItem(k,v); } catch(e){} _mem[k]=v; }
+
+// ── Nutrition Profiles (v4.8 — renamed from Energy Archetypes) ──
+var NP_PROFILES = [
+  { id: 'Athlete',     name: 'Athlete',      desc: 'High carb + protein. Calorie-dense meals timed around training.' },
+  { id: 'Active Work', name: 'Active Work',  desc: 'Sustained energy all day. Moderate-high protein, no afternoon crashes.' },
+  { id: 'Standard',   name: 'Standard',     desc: 'Balanced macros, no special tuning. Well-rounded variety.' },
+  { id: 'Stationary', name: 'Stationary',   desc: 'Lighter meals, fewer refined carbs, more fiber and vegetables.' },
+  { id: 'Child/Teen', name: 'Child / Teen', desc: 'Age-appropriate portions. Growth-supportive protein, kid-friendly recipes.' },
+  { id: 'Balanced',   name: 'Balanced',     desc: 'Flexible and variety-focused. No specific bias — built for options.' }
+];
+
+// ── State ──
+var state = {
+  view: 'setup',
+  apiKey: lsGet('plate_key',''),
+  members: JSON.parse(lsGet('plate_members','[]')),
+  weekCtx: lsGet('plate_weekctx',''),
+  foodNotes: lsGet('plate_foodnotes',''),
+  mealTypes: new Set(JSON.parse(lsGet('plate_mealtypes','["breakfast","dinner"]'))),
+  feedback: JSON.parse(lsGet('plate_feedback','{}')),
+  recipeNotes: JSON.parse(lsGet('plate_recipenotes','{}')),
+  recipeNotesKey: '',
+  profile: JSON.parse(lsGet('plate_profile', JSON.stringify({
+    dislikes: '', dietaryNeeds: '', cuisines: '',
+    mealPrepDay: 'Sunday', isCook: 'yes', appliances: '', staples: [],
+    location: 'Mountain View, CA', stores: [],
+    servings: {breakfast: 2, lunch: 5, dinner: 5, snacks: 3},
+    setupComplete: false
+  }))),
+  weekServings: JSON.parse(lsGet('plate_weekservings','null')),
+  weekVolunteers: JSON.parse(lsGet('plate_weekvols','{}')),
+  showAddForm: false,
+  newMember: {name:'', age:'', activity:'', canCook:false, notes:''},
+  activeStore: lsGet('plate_activestore',''),
+  plan: JSON.parse(lsGet('plate_plan','null')),
+  history: JSON.parse(lsGet('plate_history','[]')),
+  dayIndex: 0,
+  planView: 'day',
+  recipe: null,
+  editing: null,
+  swapping: null,
+  rejected: [],
+  suggestion: null,
+  fbTarget: null,
+  moving: null,
+  moveConflict: null,
+  shopping: null,
+  shoppingLikely: [],
+  prepGuide: JSON.parse(lsGet('plate_prepguide','null')),
+  checkedPrepItems: JSON.parse(lsGet('plate_prepitems','{}')),
+  checkedItems: {},
+  copied: false,
+  servingsConsumed: {},
+  bgFetch: lsGet('plate_bgfetch','true') !== 'false',
+  prevView: 'setup',
+  error: '',
+  expandedMember: null
+};
+
+function save() {
+  lsSet('plate_key', state.apiKey);
+  lsSet('plate_plan', JSON.stringify(state.plan));
+  lsSet('plate_history', JSON.stringify(state.history));
+  lsSet('plate_members', JSON.stringify(state.members));
+  lsSet('plate_weekctx', state.weekCtx);
+  lsSet('plate_foodnotes', state.foodNotes);
+  lsSet('plate_mealtypes', JSON.stringify([...state.mealTypes]));
+  lsSet('plate_feedback', JSON.stringify(state.feedback));
+  lsSet('plate_recipenotes', JSON.stringify(state.recipeNotes));
+  lsSet('plate_prepguide', JSON.stringify(state.prepGuide));
+  lsSet('plate_prepitems', JSON.stringify(state.checkedPrepItems));
+  lsSet('plate_profile', JSON.stringify(state.profile));
+  lsSet('plate_activestore', state.activeStore);
+  lsSet('plate_bgfetch', state.bgFetch ? 'true' : 'false');
+  lsSet('plate_weekservings', JSON.stringify(state.weekServings));
+  lsSet('plate_weekvols', JSON.stringify(state.weekVolunteers));
+}
+
+function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+function div(cls, html) { var d=document.createElement('div'); if(cls)d.className=cls; d.innerHTML=html||''; return d; }
+function getFB(name) { return (state.feedback[name]||{}).rating||0; }
+function getServings(type) {
+  if(state.weekServings&&state.weekServings[type]!=null) return state.weekServings[type];
+  if(state.profile.servings&&state.profile.servings[type]!=null) return state.profile.servings[type];
+  return type==='breakfast'?2:5;
+}
+
+var FEEDBACK_FORM_URL = 'https://forms.google.com/YOUR_FORM_ID_HERE';
+function openFeedback() {
+  if(FEEDBACK_FORM_URL.indexOf('YOUR_FORM_ID')!==-1){ alert('Feedback form coming soon!'); return; }
+  window.open(FEEDBACK_FORM_URL,'_blank');
+}
+
+// ── Render ──
+function render() {
+  var app = document.getElementById('app');
+  app.innerHTML = '';
+  if(state.error){ var e=div('err fade-in'); e.textContent=state.error; app.appendChild(e); }
+  if(state.view==='setup') renderSetup(app);
+  else if(state.view==='loading') renderLoading(app,'Building your meal plan...');
+  else if(state.view==='plan'){ if(state.moveConflict) renderMoveConflict(app); else renderPlan(app); }
+  else if(state.view==='recipe-loading') renderLoading(app,'Fetching recipe...');
+  else if(state.view==='recipe') renderRecipe(app);
+  else if(state.view==='shopping-loading') renderLoading(app,'Building your shopping list...');
+  else if(state.view==='prep-loading') renderLoading(app,'Building your prep guide...');
+  else if(state.view==='prep') renderPrepGuide(app);
+  else if(state.view==='shopping') renderShopping(app);
+  else if(state.view==='profile') renderProfile(app);
+  else if(state.view==='history') renderHistory(app);
+  else if(state.view==='nutrition') renderNutritionReport(app);
+}
+
+function renderLoading(app, msg) {
+  app.appendChild(div('card fade-in','<div class="loading"><div class="dots"><span></span><span></span><span></span></div><div class="loading-text">'+msg+'</div></div>'));
+}
+
+// ── Nutrition Profile card grid ──
+function buildNPCards(selectedId, onchangeFn) {
+  var html = '<div class="np-grid">';
+  NP_PROFILES.forEach(function(p) {
+    var sel = selectedId === p.id;
+    html += '<div class="np-card'+(sel?' sel':'')+'" onclick="'+onchangeFn+'(\''+p.id+'\')">'
+      +'<div class="np-card-name">'+esc(p.name)+'</div>'
+      +'<div class="np-card-desc">'+esc(p.desc)+'</div>'
+      +'</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ── Setup ──
+function renderSetup(app) {
+  var setupComplete = state.profile.setupComplete;
+  if(!setupComplete) {
+    renderFirstTimeSetup(app);
+  } else {
+    renderReturningSetup(app);
+  }
+}
+
+// ── First-time setup: 3 steps only ──
+function renderFirstTimeSetup(app) {
+  // Step 1: Household members
+  app.appendChild(div('card fade-in', buildFirstTimeMembersHtml()));
+
+  // Step 2: Foods to avoid
+  app.appendChild(div('card fade-in',
+    '<div class="sec-label">Any foods to avoid?</div>'
+    +'<div class="field"><label>Dislikes or dietary needs</label>'
+    +'<input type="text" id="dislikes-input" class="inline-input" style="width:100%;" value="'+esc(state.profile.dislikes)+'" placeholder="e.g. no mushrooms, dairy-free, nut allergy" oninput="state.profile.dislikes=this.value;save();">'
+    +'<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;">Leave blank if no restrictions</div>'
+    +'</div>'
+  ));
+
+  // Step 3: Servings (dinner only for simplicity)
+  var dinnerServings = getServings('dinner');
+  app.appendChild(div('card fade-in',
+    '<div class="sec-label">How many people eating dinner most nights?</div>'
+    +'<div style="display:flex;align-items:center;gap:16px;margin-top:4px;">'
+    +'<button onclick="changeWeekServing(\'dinner\',-1)" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;" '+(dinnerServings<=1?'disabled style="opacity:0.3;"':'')+'>&minus;</button>'
+    +'<span style="font-size:28px;font-weight:500;font-family:\'Fraunces\',serif;min-width:40px;text-align:center;">'+dinnerServings+'</span>'
+    +'<button onclick="changeWeekServing(\'dinner\',1)" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;">&plus;</button>'
+    +'<span style="font-size:13px;color:var(--ink-light);">people</span>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--ink-faint);margin-top:10px;">You can fine-tune breakfast, lunch and snack servings in settings</div>'
+  ));
+
+  app.appendChild(div('card fade-in',
+    '<button class="btn btn-accent btn-full" onclick="completeFirstSetup()">Generate my first meal plan →</button>'
+  ));
+}
+
+function buildFirstTimeMembersHtml() {
+  var html = '<div class="sec-label">Who\'s in your household?</div>'
+    +'<p style="font-size:13px;color:var(--ink-light);margin-bottom:14px;">Add each person — you can fill in more details later in settings.</p>';
+
+  state.members.forEach(function(m, i) {
+    html += '<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">'
+      +'<div>'
+      +'<div style="font-size:14px;font-weight:500;">'+esc(m.name)+(m.age?', '+esc(m.age):'')+'</div>'
+      +(m.activity?'<div style="display:inline-block;margin-top:3px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent-light);color:var(--accent);border:1px solid rgba(200,90,42,0.25);">'+esc(m.activity)+'</div>':"")
+      +(m.canCook?'<div style="font-size:11px;color:var(--accent);margin-top:2px;">🍳 Can cook</div>':'')
+      +'</div>'
+      +'<button style="background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:18px;line-height:1;padding:0;" onclick="removeMember('+i+')">×</button>'
+      +'</div>';
+  });
+
+  if(state.showAddForm) {
+    var nm = state.newMember;
+    html += '<div class="add-form">'
+      +'<div class="row2" style="margin-bottom:12px;">'
+      +'<div class="field" style="margin-bottom:0;"><label>Name</label><input type="text" id="m-name" class="inline-input" style="width:100%;" placeholder="e.g. Julie" value="'+esc(nm.name)+'" oninput="state.newMember.name=this.value;"></div>'
+      +'<div class="field" style="margin-bottom:0;"><label>Age (optional)</label><input type="text" id="m-age" class="inline-input" style="width:100%;" placeholder="e.g. 14" value="'+esc(nm.age)+'" oninput="state.newMember.age=this.value;"></div>'
+      +'</div>'
+      +'<div class="field"><label>Nutrition Profile</label>'
+      +buildNPCards(nm.activity, 'setNewMemberNP')
+      +'</div>'
+      +'<div class="field"><label>Foods to avoid</label><input type="text" id="m-dislikes" class="inline-input" style="width:100%;" placeholder="e.g. no mushrooms, dairy-free, nut allergy" value="'+esc(nm.dislikes||'')+'" oninput="state.newMember.dislikes=this.value;"></div>'
+      +'<div class="field"><label>Dietary needs</label><input type="text" id="m-dietary" class="inline-input" style="width:100%;" placeholder="e.g. low sodium, avoid high-potassium" value="'+esc(nm.dietaryNeeds||'')+'" oninput="state.newMember.dietaryNeeds=this.value;"></div>'
+      // can cook — always visible, no save needed
+      +'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border);margin-top:4px;">'
+      +'<div onclick="toggleNewMemberCook()" style="width:18px;height:18px;border-radius:4px;border:1.5px solid '+(nm.canCook?'var(--accent)':'var(--border-med)')+';background:'+(nm.canCook?'var(--accent)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;">'
+      +(nm.canCook?'<span style="color:#fff;font-size:11px;font-weight:600;">✓</span>':'')
+      +'</div>'
+      +'<div><div style="font-size:13px;font-weight:500;">Can cook meals</div><div style="font-size:12px;color:var(--ink-light);">They\'ll be included in the cooking schedule</div></div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-top:10px;">'
+      +'<button class="btn btn-primary btn-sm" onclick="saveMember()">Add member</button>'
+      +'<button class="btn-ghost" onclick="cancelAdd()">Cancel</button>'
+      +'</div></div>';
+  } else {
+    html += '<button class="btn-add" onclick="showAddForm()">+ Add household member</button>';
+  }
+  return html;
+}
+
+function completeFirstSetup() {
+  if(state.members.length === 0) { state.error='Add at least one household member first.'; render(); return; }
+  state.profile.setupComplete = true;
+  // Sync dinner servings to all meal types as a default
+  var ds = getServings('dinner');
+  if(!state.profile.servings) state.profile.servings = {breakfast:2,lunch:5,dinner:5,snacks:3};
+  state.profile.servings.dinner = ds;
+  state.profile.servings.breakfast = Math.max(1, Math.round(ds * 0.6));
+  state.profile.servings.lunch = ds;
+  state.profile.servings.snacks = Math.max(1, Math.round(ds * 0.5));
+  save();
+  generatePlan();
+}
+
+// ── Returning user setup ──
+function renderReturningSetup(app) {
+  // ── START NEW WEEK BANNER ──
+  // Lives here (setup screen) not on the plan screen.
+  // User decides to start fresh before generating, not after reviewing.
+  // PHASE 4 TODO: tap "View last week" to open history browser inline.
+  if(state.plan && state.plan.days && state.plan.days.length) {
+    app.appendChild(div('fade-in',
+      '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--warm-white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:14px;">'
+      +'<div>'
+      +'<div style="font-size:13px;font-weight:500;color:var(--ink);">You have a plan from last week</div>'
+      +'<div style="font-size:12px;color:var(--ink-faint);margin-top:2px;">Start fresh to clear it and plan a new week</div>'
+      +'</div>'
+      +'<button class="btn btn-outline btn-sm" onclick="startNewWeek()" style="white-space:nowrap;flex-shrink:0;margin-left:12px;">Start new week</button>'
+      +'</div>'
+    ));
+  }
+  // Compact member summary — read only, edit in Profile
+  var memberSummary = '<div class="sec-label">Your household</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">';
+  state.members.forEach(function(m) {
+    memberSummary += '<div class="member-pill"><span class="member-pill-name">'+esc(m.name)+(m.age?', '+esc(m.age):'')+'</span>'+(m.activity?'<span class="member-pill-np">'+esc(m.activity)+'</span>':'')+'</div>';
+  });
+  memberSummary += '</div>'
+    +'<button class="btn-ghost" onclick="goProfile()" style="font-size:12px;">✎ Edit members in settings</button>';
+  app.appendChild(div('card fade-in', memberSummary));
+
+  // This week context
+  app.appendChild(div('card fade-in',
+    '<div class="sec-label">This week</div>'
+    +'<div class="field"><label>Anything different this week?</label>'
+    +'<textarea id="week-ctx" rows="3" placeholder="e.g. long run Saturday, eating out Wednesday, have leftover salmon to use" oninput="state.weekCtx=this.value;save();">'+esc(state.weekCtx)+'</textarea>'
+    +'<div style="font-size:11px;color:var(--ink-faint);margin-top:4px;">Member schedules and preferences come from your profile automatically</div>'
+    +'</div>'
+  ));
+
+  // Meals to include
+  var opts = ['breakfast','lunch','dinner','snacks'];
+  var thtml = '<div class="sec-label" style="margin-bottom:12px;">Meals to include</div><div class="tag-row">';
+  opts.forEach(function(m){ thtml+='<div class="tag '+(state.mealTypes.has(m)?'sel':'')+'" onclick="toggleMeal(\''+m+'\')">'+m[0].toUpperCase()+m.slice(1)+'</div>'; });
+  thtml+='</div>';
+  app.appendChild(div('card fade-in', thtml));
+
+  // Store selector
+  var stores = state.profile.stores||[];
+  if(stores.length>0) {
+    var storeHtml='<div class="sec-label">Shopping at</div><div class="tag-row">';
+    stores.forEach(function(store,si){ var isActive=state.activeStore===store; storeHtml+='<div class="tag '+(isActive?'sel':'')+'" onclick="setActiveStoreByIndex('+si+')">'+esc(store)+'</div>'; });
+    storeHtml+='</div>'+(state.activeStore?'<div style="font-size:11px;color:var(--ink-faint);margin-top:8px;">Price estimates calibrated for '+esc(state.activeStore)+'</div>':'');
+    app.appendChild(div('card fade-in', storeHtml));
+  }
+
+  // Who's cooking
+  var cookableMembers=state.members.filter(function(m){return m.canCook;});
+  if(cookableMembers.length>0&&state.mealTypes.has('dinner')) {
+    var days7=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    var vols=state.weekVolunteers||{};
+    var volHtml='<div class="sec-label">Who\'s cooking this week?</div>'
+      +'<p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;">Optional — tap to volunteer for a dinner night.</p>';
+    days7.forEach(function(day,di) {
+      var dayVols=vols[day]||[];
+      volHtml+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;min-width:80px;color:var(--ink-light);">'+day.slice(0,3)+'</span><div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      cookableMembers.forEach(function(m,mi) {
+        var isVol=dayVols.indexOf(m.name)!==-1;
+        volHtml+='<div onclick="toggleVolunteer('+di+','+mi+')" style="padding:4px 12px;border-radius:999px;font-size:12px;cursor:pointer;border:1px solid '+(isVol?'var(--accent)':'var(--border-med)')+';background:'+(isVol?'var(--accent-light)':'transparent')+';color:'+(isVol?'var(--accent)':'var(--ink-light)')+';">'+esc(m.name)+(isVol?' ✓':'')+'</div>';
+      });
+      volHtml+='</div></div>';
+    });
+    app.appendChild(div('card fade-in', volHtml));
+  }
+
+  app.appendChild(div('card fade-in','<button class="btn btn-accent btn-full" onclick="generatePlan()">Generate my meal plan →</button>'));
+}
+
+// ── Profile (full settings) ──
+function renderProfile(app) {
+  var p = state.profile;
+  app.appendChild(div('fade-in',
+    '<div class="week-header">'
+    +'<button class="btn btn-outline btn-sm" onclick="goBack()" >← Back</button>'
+    +'<div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;">Settings</div>'
+    +'<button class="btn btn-accent btn-sm" id="save-btn-top" onclick="saveProfile()">Save</button>'
+    +'</div>'
+  ));
+  app.appendChild(div('fade-in',
+    '<button class="btn btn-outline btn-sm" onclick="state.prevView=\'profile\';state.view=\'history\';render()" style="margin-bottom:8px;display:flex;align-items:center;gap:6px;">📋 View meal history</button>'
+  
+  ));
+
+  // Members — full edit in profile
+  app.appendChild(div('card fade-in', buildProfileMembersHtml()));
+
+  // Cooking preferences (no appliances field — lives on member cards)
+  var prepDayOpts=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(function(d){ return '<option value="'+d+'"'+(p.mealPrepDay===d?' selected':'')+'>'+d+'</option>'; }).join('');
+  app.appendChild(div('card fade-in',
+    '<div class="sec-label">Cooking preferences</div>'
+    +'<div class="row2">'
+    +'<div class="field"><label>Meal prep day</label><select id="prof-mealPrepDay" style="width:100%;padding:10px 14px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--cream);font-family:\'DM Sans\',sans-serif;font-size:14px;color:var(--ink);outline:none;" onchange="state.profile.mealPrepDay=this.value;save();">'+prepDayOpts+'</select></div>'
+    +'<div class="field"><label>Favorite cuisines</label><input type="text" id="prof-cuisines" class="inline-input" style="width:100%;" value="'+esc(p.cuisines||'')+'" placeholder="e.g. Mediterranean, Mexican, Asian" oninput="state.profile.cuisines=this.value;save();"></div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);margin-top:4px;">'
+    +'<div><div style="font-size:13px;font-weight:500;">Auto-fetch recipes &amp; nutrition</div><div style="font-size:12px;color:var(--ink-light);margin-top:2px;">Fetches all recipes in background. ~14 API calls per plan.</div></div>'
+    +'<div onclick="state.bgFetch=!state.bgFetch;save();render();" style="width:40px;height:22px;border-radius:999px;background:'+(state.bgFetch?'var(--accent)':'var(--border-med)')+';cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;margin-left:12px;">'
+    +'<div style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;transition:left .2s;left:'+(state.bgFetch?'20px':'2px')+'"></div>'
+    +'</div></div>'
+  ));
+
+  // Servings
+  var sv=p.servings||{breakfast:2,lunch:5,dinner:5,snacks:3};
+  var svHtml='<div class="sec-label">Default servings per meal</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+  ['breakfast','lunch','dinner','snacks'].forEach(function(m) {
+    svHtml+='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">'
+      +'<span style="font-size:13px;text-transform:capitalize;">'+m+'</span>'
+      +'<div style="display:flex;align-items:center;gap:8px;">'
+      +'<button onclick="changeProfileServing(\''+m+'\',-1)" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;" '+(sv[m]<=1?'disabled':'')+'>&minus;</button>'
+      +'<span style="font-size:14px;font-weight:500;min-width:20px;text-align:center;">'+sv[m]+'</span>'
+      +'<button onclick="changeProfileServing(\''+m+'\',1)" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;">&plus;</button>'
+      +'</div></div>';
+  });
+  svHtml+='</div>';
+  app.appendChild(div('card fade-in', svHtml));
+
+  // Shopping
+  var storesHtml='<div class="sec-label">Shopping</div>'
+    +'<div class="field"><label>Your location (for price estimates)</label><input type="text" id="prof-location" class="inline-input" style="width:100%;" value="'+esc(p.location||'')+'" placeholder="e.g. Mountain View, CA" oninput="state.profile.location=this.value;save();"></div>'
+    +'<div class="field" style="margin-bottom:0;"><label>Your grocery stores</label>';
+  (p.stores||[]).forEach(function(s,i) {
+    storesHtml+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:14px;flex:1;">'+esc(s)+'</span><button onclick="removeStore('+i+')" style="background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:16px;padding:0;">×</button></div>';
+  });
+  storesHtml+='<div style="display:flex;gap:8px;margin-top:6px;"><input type="text" id="store-input" class="inline-input" placeholder="e.g. Trader Joe\'s" style="flex:1;" onkeydown="if(event.key===\'Enter\')addStore();"><button class="btn btn-outline btn-sm" onclick="addStore()">+ Add</button></div></div>';
+  app.appendChild(div('card fade-in', storesHtml));
+
+  // Recipe notes
+  var noteEntries = Object.entries(state.recipeNotes||{}).filter(function(e){return e[1]&&e[1].trim();});
+  var noteCount = noteEntries.length;
+  var notesHtml = '<div class="sec-label">Recipe notes</div>'
+    + '<p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;">Notes you\'ve left on recipes — used to improve future meal plans.</p>';
+  if(noteCount > 0) {
+    noteEntries.forEach(function(e) {
+      notesHtml += '<div style="padding:9px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;">'
+        + '<div style="flex:1;"><div style="font-size:13px;font-weight:500;color:var(--ink);">'+esc(e[0])+'</div>'
+        + '<div style="font-size:12px;color:var(--ink-light);margin-top:2px;line-height:1.5;">'+esc(e[1])+'</div></div>'
+        + '<button onclick="deleteRecipeNote('+JSON.stringify(e[0])+')" style="background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:18px;padding:0;flex-shrink:0;">&times;</button>'
+        + '</div>';
+    });
+    notesHtml += '<button class="btn btn-outline btn-sm" style="margin-top:12px;color:#A32D2D;border-color:rgba(163,45,45,0.3);" onclick="clearAllRecipeNotes()">Clear all notes</button>';
+  } else {
+    notesHtml += '<div style="font-size:13px;color:var(--ink-faint);font-style:italic;">No recipe notes yet. Add them from any recipe screen.</div>';
+  }
+  app.appendChild(div('card fade-in', notesHtml));
+
+  // Staples
+  var staplesHtml='<div class="sec-label">Weekly staples</div>'
+    +'<p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;">Auto-added to "You likely have this" on every shopping list.</p>';
+  (p.staples||[]).forEach(function(s,i) {
+    var boxBg=s.active?'var(--accent)':'transparent';
+    var boxBorder=s.active?'var(--accent)':'var(--border-med)';
+    var checkMark=s.active?'<span style="color:#fff;font-size:11px;font-weight:600;">✓</span>':'';
+    staplesHtml+='<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);">'
+      +'<div onclick="toggleStaple('+i+')" class="check-box" style="border:1.5px solid '+boxBorder+';background:'+boxBg+';">'+checkMark+'</div>'
+      +'<span style="font-size:14px;flex:1;">'+esc(s.name)+'</span>'
+      +'<button onclick="removeStaple('+i+')" style="background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:16px;padding:0;">×</button>'
+      +'</div>';
+  });
+  staplesHtml+='<div style="display:flex;gap:8px;margin-top:12px;"><input type="text" id="staple-input" class="inline-input" placeholder="e.g. protein powder, olive oil, coffee" style="flex:1;" onkeydown="if(event.key===\'Enter\')addStaple();"><button class="btn btn-outline btn-sm" onclick="addStaple()">+ Add</button></div>';
+  app.appendChild(div('card fade-in', staplesHtml));
+
+  // v4.8: bottom save button also confirms
+  app.appendChild(div('card fade-in','<button class="btn btn-accent btn-full" id="save-btn-bottom" onclick="saveProfile()">Save settings</button>'));
+}
+
+// ── Profile members (full edit) ──
+function buildProfileMembersHtml() {
+  var html='<div class="sec-label">Household members</div>';
+  state.members.forEach(function(m,i) {
+    var isExpanded=state.expandedMember===i;
+    html+='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;">';
+    html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;">'
+      +'<div style="cursor:pointer;flex:1;" onclick="toggleMemberExpand('+i+')">'
+      +'<div style="font-size:14px;font-weight:500;">'+esc(m.name)+(m.age?', '+esc(m.age):'')+'</div>'
+      +(m.activity?'<div style="display:inline-block;margin-top:3px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent-light);color:var(--accent);border:1px solid rgba(200,90,42,0.25);">'+esc(m.activity)+'</div>':"")
+      +(m.notes?'<div style="font-size:11px;color:var(--ink-faint);margin-top:2px;">'+esc(m.notes.slice(0,40))+(m.notes.length>40?'…':'')+'</div>':'')
+      +(m.canCook?'<div style="font-size:11px;color:var(--accent);margin-top:2px;">🍳 Can cook'+(m.appliances?' · '+esc(m.appliances):'')+'</div>':'')
+      +'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center;">'
+      +'<button class="btn-ghost" style="font-size:12px;" onclick="toggleMemberExpand('+i+')">'+(isExpanded?'▲ Less':'✎ Edit')+'</button>'
+      +'<button style="background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:18px;padding:0;margin-left:8px;" onclick="removeMember('+i+')">×</button>'
+      +'</div></div>';
+    if(isExpanded) {
+      html+='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">'
+        +'<div class="row2" style="margin-bottom:10px;">'
+        +'<div class="field" style="margin-bottom:0;"><label>Name</label><input type="text" id="em-name-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.name)+'"></div>'
+        +'<div class="field" style="margin-bottom:0;"><label>Age</label><input type="text" id="em-age-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.age||'')+'"></div>'
+        +'</div>'
+        +'<div class="field"><label>Nutrition Profile</label>'
+        +buildNPCards(m.activity||'', 'setMemberNP_'+i)
+        +'</div>'
+        +'<div class="field"><label>Foods to avoid</label><input type="text" id="em-dislikes-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.dislikes||'')+'" placeholder="e.g. no mushrooms, dairy-free, nut allergy"></div>'
+        +'<div class="field"><label>Dietary needs</label><input type="text" id="em-dietary-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.dietaryNeeds||'')+'" placeholder="e.g. low sodium, nut allergy"></div>'
+        +'<div class="field"><label>Weekly schedule</label>'
+        +'<textarea id="em-schedule-'+i+'" style="width:100%;padding:9px 12px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--warm-white);font-family:\'DM Sans\',sans-serif;font-size:13px;color:var(--ink);outline:none;resize:vertical;min-height:70px;line-height:1.5;" placeholder="e.g. Run Tue 4mi, Wed 5mi&#10;Football Mon/Wed/Fri evenings">'+esc(m.schedule||'')+'</textarea></div>'
+        +'<div class="field"><label>Notes <span style="font-weight:400;color:var(--ink-faint);">(edge cases, preferences)</span></label>'
+        +'<textarea id="em-notes-'+i+'" style="width:100%;padding:9px 12px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--warm-white);font-family:\'DM Sans\',sans-serif;font-size:13px;color:var(--ink);outline:none;resize:vertical;min-height:56px;line-height:1.5;" placeholder="e.g. lactose intolerant, prefers spicy food, active teen">'+esc(m.notes||'')+'</textarea></div>'
+        +'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border);margin-top:4px;">'
+        +'<div onclick="toggleMemberCook('+i+')" style="width:18px;height:18px;border-radius:4px;border:1.5px solid '+(m.canCook?'var(--accent)':'var(--border-med)')+';background:'+(m.canCook?'var(--accent)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;">'
+        +(m.canCook?'<span style="color:#fff;font-size:11px;font-weight:600;">✓</span>':'')
+        +'</div>'
+        +'<div><div style="font-size:13px;font-weight:500;">Can cook meals</div></div>'
+        +'</div>'
+        +(m.canCook?'<div class="field" style="margin-top:4px;"><label>Appliances they use</label><input type="text" id="em-appliances-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.appliances||'')+'" placeholder="e.g. air fryer, stovetop, microwave"></div>':'')
+        +(m.canCook?'<div class="field"><label>Preferred cook time</label><input type="text" id="em-cooktime-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.cookTime||'')+'" placeholder="e.g. weeknights under 30 min"></div>':'')
+        +'<button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="saveMemberEdit('+i+')">Save</button>'
+        +'</div>';
+    }
+    html+='</div>';
+  });
+
+  // Add form in profile
+  if(state.showAddForm) {
+    var nm=state.newMember;
+    html+='<div class="add-form">'
+      +'<div class="row2" style="margin-bottom:12px;">'
+      +'<div class="field" style="margin-bottom:0;"><label>Name</label><input type="text" id="m-name" class="inline-input" style="width:100%;" placeholder="e.g. Julie" value="'+esc(nm.name)+'" oninput="state.newMember.name=this.value;"></div>'
+      +'<div class="field" style="margin-bottom:0;"><label>Age (optional)</label><input type="text" id="m-age" class="inline-input" style="width:100%;" placeholder="e.g. 14" value="'+esc(nm.age)+'" oninput="state.newMember.age=this.value;"></div>'
+      +'</div>'
+      +'<div class="field"><label>Nutrition Profile</label>'+buildNPCards(nm.activity,'setNewMemberNP')+'</div>'
+      +'<div class="field"><label>Foods to avoid</label><input type="text" id="m-dislikes" class="inline-input" style="width:100%;" placeholder="e.g. no mushrooms, dairy-free" value="'+esc(nm.dislikes||'')+'" oninput="state.newMember.dislikes=this.value;"></div>'
+      +'<div class="field"><label>Dietary needs</label><input type="text" id="m-dietary" class="inline-input" style="width:100%;" placeholder="e.g. low sodium, nut allergy" value="'+esc(nm.dietaryNeeds||'')+'" oninput="state.newMember.dietaryNeeds=this.value;"></div>'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border);margin-top:4px;">'
+      +'<div onclick="toggleNewMemberCook()" style="width:18px;height:18px;border-radius:4px;border:1.5px solid '+(nm.canCook?'var(--accent)':'var(--border-med)')+';background:'+(nm.canCook?'var(--accent)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;">'
+      +(nm.canCook?'<span style="color:#fff;font-size:11px;font-weight:600;">✓</span>':'')
+      +'</div>'
+      +'<div><div style="font-size:13px;font-weight:500;">Can cook meals</div></div>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-top:10px;">'
+      +'<button class="btn btn-primary btn-sm" onclick="saveMember()">Add member</button>'
+      +'<button class="btn-ghost" onclick="cancelAdd()">Cancel</button>'
+      +'</div></div>';
+  } else {
+    html+='<button class="btn-add" onclick="showAddForm()">+ Add household member</button>';
+  }
+  return html;
+}
+
+// ── Plan ──
+function renderPlan(app) {
+  var days=(state.plan&&state.plan.days)||[];
+  var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
+  if(state.dayIndex>=days.length) state.dayIndex=0;
+  var vd=state.planView==='day';
+  app.appendChild(div('fade-in',
+    '<div class="week-header">'
+    +'<div style="display:flex;gap:6px;">'
+    +'<button class="btn btn-outline btn-sm" onclick="goSetup()">← Edit</button>'
+    +'<button class="btn btn-outline btn-sm" onclick="state.prevView=\'plan\';state.view=\'history\';render()">History</button>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;">'
+    +'<button class="btn btn-outline btn-sm '+(vd?'btn-active':'')+'" onclick="setPV(\'day\')">Day</button>'
+    +'<button class="btn btn-outline btn-sm '+(!vd?'btn-active':'')+'" onclick="setPV(\'week\')">Week</button>'
+    +'</div>'
+    +'<button class="btn btn-outline btn-sm" onclick="generatePlan()">↻ New</button>'
+    +'</div>'
+  ));
+  if(vd) renderDayView(app,days,mealOrder);
+  else renderWeekView(app,days,mealOrder);
+  app.appendChild(div('card fade-in',
+    '<div style="display:flex;gap:8px;">'
+    +'<button class="btn btn-accent btn-full" onclick="generateShopping()" style="flex:2;">Build shopping list →</button>'
+    +(state.profile.mealPrepDay?'<button class="btn btn-outline btn-full" onclick="generatePrepGuide()" style="flex:1;">'+state.profile.mealPrepDay.slice(0,3)+' Prep</button>':'')
+    +'<button class="btn btn-outline btn-full" onclick="state.view=\'nutrition\';render()" style="flex:1;">Nutrition</button>'
+    +'</div>'
+  ));
+}
+
+function renderDayView(app,days,mealOrder) {
+  var di=state.dayIndex;
+  var day=days[di];
+  var dots=days.map(function(_,i){ var bg=i===di?'var(--accent)':'var(--border-med)'; return '<div onclick="jumpDay('+i+')" style="width:8px;height:8px;border-radius:50%;cursor:pointer;background:'+bg+';transition:background .15s;"></div>'; }).join('');
+  var prevDis=di===0?'disabled style="opacity:0.3;"':'';
+  var nextDis=di===days.length-1?'disabled style="opacity:0.3;"':'';
+  app.appendChild(div('',
+    '<div style="display:grid;grid-template-columns:44px 1fr 44px;align-items:center;margin-bottom:14px;gap:8px;">'
+    +'<button class="btn btn-outline btn-sm" onclick="prevDay()" '+prevDis+' style="width:44px;padding:7px 0;justify-content:center;">&larr;</button>'
+    +'<div style="text-align:center;">'
+    +'<div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;line-height:1.2;">'+esc(day.day)+'</div>'
+    +(day.event?'<div style="margin-top:5px;"><span class="event-pill">'+esc(day.event)+'</span></div>':'')
+    +'</div>'
+    +'<button class="btn btn-outline btn-sm" onclick="nextDay()" '+nextDis+' style="width:44px;padding:7px 0;justify-content:center;">&rarr;</button>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:center;gap:6px;margin-bottom:18px;">'+dots+'</div>'
+  ));
+  var card=div('card fade-in','');
+  var html='';
+  mealOrder.forEach(function(type,ti) {
+    if(!day[type]) return;
+    if(ti>0) html+='<div class="divider"></div>';
+    html+='<div class="day-block"><div class="day-name"><span>'+type+'</span></div>'+buildMealCard(di,type,day[type],true)+'</div>';
+  });
+  card.innerHTML=html;
+  app.appendChild(card);
+  var dayNutri=calcDayNutrition(day,mealOrder);
+  if(dayNutri.hasData) {
+    var nc=div('card fade-in','');
+    nc.innerHTML='<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-light);margin-bottom:10px;">Estimated daily total</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;">'
+      +buildNutriBadge('Calories',dayNutri.calories,'')
+      +buildNutriBadge('Protein',dayNutri.protein_g,'g')
+      +buildNutriBadge('Carbs',dayNutri.carbs_g,'g')
+      +buildNutriBadge('Fat',dayNutri.fat_g,'g')
+      +buildNutriBadge('Sugar',dayNutri.sugar_g,'g')
+      +'</div>';
+    app.appendChild(nc);
+  }
+}
+
+function renderWeekView(app,days,mealOrder) {
+  var card=div('card fade-in','');
+  var html='';
+  days.forEach(function(day,di) {
+    if(di>0) html+='<div class="divider"></div>';
+    html+='<div class="day-block" style="cursor:pointer;" onclick="jumpDay('+di+');setPV(\'day\')">'
+      +'<div class="day-name">'+esc(day.day)+(day.event?' <span class="event-pill">'+esc(day.event)+'</span>':'')+'<span style="margin-left:auto;font-size:11px;color:var(--accent);">edit →</span></div>'
+      +'<div style="display:flex;flex-direction:column;gap:5px;">';
+    mealOrder.forEach(function(type) {
+      if(!day[type]) return;
+      var fb=getFB(day[type].name);
+      var indicator=fb===1?' <span style="font-size:11px;">👍</span>':fb===-1?' <span style="font-size:11px;">👎</span>':'';
+      html+='<div style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-faint);min-width:62px;flex-shrink:0;">'+type+'</span><span style="font-size:13px;color:var(--ink);">'+esc(day[type].name)+indicator+'</span></div>';
+    });
+    html+='</div></div>';
+  });
+  card.innerHTML=html;
+  app.appendChild(card);
+  app.appendChild(div('','<p style="font-size:12px;color:var(--ink-faint);text-align:center;margin-top:-4px;">Tap any day to edit</p>'));
+}
+
+function buildMealCard(di,type,meal,showRecipe) {
+  var isEdit=state.editing&&state.editing.di===di&&state.editing.type===type;
+  var isSwapping=state.swapping&&state.swapping.di===di&&state.swapping.type===type;
+  var hasSug=state.suggestion&&state.suggestion.di===di&&state.suggestion.type===type;
+  var hasFBNote=state.fbTarget&&state.fbTarget.di===di&&state.fbTarget.type===type;
+  var isMoving=state.moving&&state.moving.di===di&&state.moving.type===type;
+  if(isEdit) return '<div style="background:var(--cream);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px 14px;"><div style="font-size:12px;color:var(--ink-light);margin-bottom:6px;">Type a new meal name or describe a change</div><input type="text" id="edit-input" class="inline-input" value="'+esc(meal.name)+'" style="width:100%;margin-bottom:8px;"><div style="display:flex;gap:8px;"><button class="btn btn-accent btn-sm" onclick="saveEdit('+di+',\''+type+'\')">Apply</button><button class="btn btn-outline btn-sm" onclick="cancelEdit()">Cancel</button></div></div>';
+  if(isSwapping) return '<div style="padding:14px;background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;"><div class="dots" style="justify-content:center;"><span></span><span></span><span></span></div><div style="font-size:13px;color:var(--ink-light);margin-top:6px;">Finding a swap...</div></div>';
+  if(hasSug) {
+    var s=state.suggestion.meal; var isReplacement=!!state.suggestion.isReplacement;
+    return '<div style="background:var(--accent-light);border:1px solid rgba(200,90,42,0.3);border-radius:var(--radius-sm);overflow:hidden;"><div style="padding:12px 14px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:5px;">'+type+' · '+(isReplacement?'suggested replacement':'suggested')+'</div><div class="meal-name" style="font-size:14px;">'+esc(s.name)+'</div>'+(s.note?'<div class="meal-note" style="margin-top:4px;">'+esc(s.note)+'</div>':'')+'</div><div style="display:flex;border-top:1px solid rgba(200,90,42,0.2);"><button class="mab" style="flex:1;padding:9px;border-right:1px solid rgba(200,90,42,0.2);color:var(--accent);font-weight:500;" onclick="acceptSwap()">✓ Use this</button><button class="mab" style="flex:1;padding:9px;border-right:1px solid rgba(200,90,42,0.2);" onclick="rejectSwap()">↻ Try again</button>'+(isReplacement?'<button class="mab" style="flex:1;padding:9px;" onclick="clearReplacementSlot('+di+',\''+type+'\')">✕ Leave empty</button>':'<button class="mab" style="flex:1;padding:9px;" onclick="cancelSwap()">✕ Keep</button>')+'</div></div>';
+  }
+  if(isMoving) {
+    var days=(state.plan&&state.plan.days)||[];
+    var dayBtns=days.map(function(d,i){ if(i===di)return''; return'<button class="mab" style="padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);margin:3px;" onclick="moveTo('+i+')">'+esc(d.day.slice(0,3))+'</button>'; }).join('');
+    return'<div style="padding:10px 14px;background:var(--warm-white);border:1px solid var(--border);border-radius:var(--radius-sm);"><div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">Move to which day?</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">'+dayBtns+'</div><button class="btn btn-outline btn-sm" onclick="state.moving=null;render()">Cancel</button></div>';
+  }
+  var liked=getFB(meal.name)===1; var disliked=getFB(meal.name)===-1;
+  var likedStyle=liked?'color:var(--green);font-weight:500;background:var(--green-light);':'';
+  var dislikedStyle=disliked?'color:#A32D2D;font-weight:500;background:#FCEBEB;':'';
+  var out='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">';
+  if(showRecipe) out+='<div style="padding:14px 16px;cursor:pointer;" onclick="loadRecipe('+di+',\''+type+'\')"><div class="meal-name" style="font-size:15px;">'+esc(meal.name)+'</div>'+(meal.note?'<div class="meal-note" style="margin-top:5px;">'+esc(meal.note)+'</div>':'')+'<div style="margin-top:8px;font-size:12px;color:var(--accent);">Tap for recipe →</div></div>';
+  else out+='<div style="padding:10px 12px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--ink-faint);margin-bottom:3px;">'+type+'</div><div class="meal-name">'+esc(meal.name)+'</div></div>';
+  if(hasFBNote) {
+    out+='<div style="padding:10px 14px;border-top:1px solid var(--border);background:var(--warm-white);"><div style="font-size:12px;color:var(--ink-light);margin-bottom:6px;">Why didn\'t you like it? (optional)</div><input type="text" id="feedback-note-input" class="inline-input" placeholder="e.g. too spicy..." style="width:100%;margin-bottom:8px;"><div style="display:flex;gap:6px;"><button class="btn btn-accent btn-sm" onclick="saveFBNote('+di+',\''+type+'\')">Save note</button><button class="btn btn-outline btn-sm" onclick="state.fbTarget=null;render()">Skip</button></div></div>';
+  } else {
+    out+='<div style="display:flex;border-top:1px solid var(--border);"><button class="mab" style="flex:1;padding:9px;border-right:1px solid var(--border);'+likedStyle+'" onclick="rateMeal('+di+',\''+type+'\',1)">👍 '+(liked?'Liked':'Like')+'</button><button class="mab" style="flex:1;padding:9px;border-right:1px solid var(--border);'+dislikedStyle+'" onclick="rateMeal('+di+',\''+type+'\',-1)">👎 '+(disliked?'Disliked':'Dislike')+'</button><button class="mab" style="flex:1;padding:9px;border-right:1px solid var(--border);" onclick="swapMeal('+di+',\''+type+'\')">↻ Swap</button><button class="mab" style="flex:1;padding:9px;border-right:1px solid var(--border);" onclick="editMeal('+di+',\''+type+'\')">✎ Edit</button><button class="mab" style="flex:1;padding:9px;" onclick="startMove('+di+',\''+type+'\')">⇄ Move</button></div>';
+  }
+  out+='</div>';
+  return out;
+}
+
+function renderMoveConflict(app) {
+  var c=state.moveConflict; var days=state.plan.days;
+  var fromDay=days[c.fromDi].day; var toDay=days[c.toDi].day;
+  app.appendChild(div('card fade-in','<div class="sec-label">Move meal</div><p style="font-size:14px;color:var(--ink-light);margin-bottom:16px;">'+esc(toDay)+' already has a '+esc(c.type)+'. What would you like to do?</p><div style="display:flex;flex-direction:column;gap:10px;"><div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;"><div style="font-size:12px;font-weight:500;margin-bottom:4px;">Swap — trade the two meals</div><div style="font-size:13px;color:var(--ink-light);margin-bottom:10px;"><strong>'+esc(fromDay)+'</strong> gets: '+esc(c.destMeal.name)+'<br><strong>'+esc(toDay)+'</strong> gets: '+esc(c.srcMeal.name)+'</div><button class="btn btn-primary btn-sm" onclick="resolveMoveConflict(\'swap\')">Swap them</button></div><div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;"><div style="font-size:12px;font-weight:500;margin-bottom:4px;">Replace — move the meal, remove the other</div><div style="font-size:13px;color:var(--ink-light);margin-bottom:10px;"><strong>'+esc(toDay)+'</strong> gets: '+esc(c.srcMeal.name)+'<br>'+esc(c.destMeal.name)+' will be removed</div><button class="btn btn-outline btn-sm" onclick="resolveMoveConflict(\'replace\')">Replace it</button></div><button class="btn-ghost" onclick="state.moveConflict=null;render()">Cancel</button></div>'));
+}
+
+function renderRecipe(app) {
+  var r=state.recipe; var n=r.nutrition||{};
+  var mealKey=state.recipeDi+'_'+state.recipeType;
+  var servings=(state.servingsConsumed&&state.servingsConsumed[mealKey]!=null)?state.servingsConsumed[mealKey]:getServings(state.recipeType);
+  if(state.recipeDi!==undefined&&state.recipeType&&state.plan){ var meal=state.plan.days[state.recipeDi][state.recipeType]; if(meal&&n.calories) meal.nutrition=n; }
+  app.appendChild(div('fade-in','<button class="btn btn-outline btn-sm" style="margin-bottom:20px;" onclick="goBack()">← Back to plan</button>'));
+  var card=div('card fade-in','');
+  var html='<div class="recipe-title">'+esc(r.title)+'</div><div class="recipe-meta">'+esc(r.servings||'')+(r.time?' · '+esc(r.time):'')+'</div>';
+  if(n.calories) {
+    html+='<div style="background:var(--cream);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:4px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-faint);">Est. nutrition</div><div style="display:flex;align-items:center;gap:8px;"><button onclick="changeServings(\''+mealKey+'\','+(servings-0.5)+')" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;line-height:1;" '+(servings<=0.5?'disabled style="opacity:0.3;"':'')+'>&minus;</button><span style="font-size:13px;font-weight:500;min-width:60px;text-align:center;">'+servings+' serving'+(servings!==1?'s':'')+'</span><button onclick="changeServings(\''+mealKey+'\','+(servings+0.5)+')" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;line-height:1;">&plus;</button></div></div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;">'+buildNutriBadge('Calories',n.calories*servings,'')+buildNutriBadge('Protein',n.protein_g*servings,'g')+buildNutriBadge('Carbs',n.carbs_g*servings,'g')+buildNutriBadge('Fat',n.fat_g*servings,'g')+buildNutriBadge('Sugar',n.sugar_g*servings,'g')+'</div></div>';
+  }
+  var baseServings = parseBaseServings(r.servings);
+  var ratio = servings / baseServings;
+  html+='<div class="r-sec">Ingredients</div><div style="font-size:11px;color:var(--ink-faint);margin-bottom:8px;">Scaled for '+servings+' serving'+(servings!==1?'s':'')+' (base: '+baseServings+')</div><ul class="ing-list">';
+  (r.ingredients||[]).forEach(function(ing){html+='<li>'+esc(scaleIngredient(ing,ratio))+'</li>';});
+  html+='</ul><div class="r-sec">Steps</div><ol class="step-list">';
+  (r.steps||[]).forEach(function(s,idx){html+='<li><div class="step-num">'+(idx+1)+'</div><span>'+esc(s)+'</span></li>';});
+  html+='</ol>';
+  if(r.tip) html+='<div class="r-sec">Tip</div><div class="tip-box">'+esc(r.tip)+'</div>';
+
+  // Notes for next time
+  var rTitle = r.title || '';
+  var existingNote = (state.recipeNotes && state.recipeNotes[rTitle]) || '';
+  html += '<div class="r-sec" style="margin-top:22px;">Notes for next time</div>'
+    + '<div style="position:relative;">'
+    + '<textarea id="recipe-note-input" rows="3" '
+    + 'placeholder="e.g. Everyone loved this — make again. Try less chili next time. Too many steps for a weeknight." '
+    + 'style="width:100%;padding:10px 36px 10px 12px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--cream);font-family:\'DM Sans\',sans-serif;font-size:13px;color:var(--ink);outline:none;resize:vertical;min-height:72px;line-height:1.5;transition:border-color .15s;" '
+    + 'onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'var(--border-med)\'" '
+    + 'oninput="saveRecipeNote()">'
+    + esc(existingNote)
+    + '</textarea>'
+    + (existingNote ? '<button onclick="clearRecipeNote()" title="Clear note" style="position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:18px;line-height:1;padding:2px;">&times;</button>' : '')
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;">Saved automatically. Informs future meal plan suggestions.</div>';
+
+  state.recipeNotesKey = rTitle;
+  card.innerHTML=html; app.appendChild(card);
+}
+
+function parseBaseServings(servingsStr) {
+  if (!servingsStr) return 1;
+  // Handle plain numbers: "4", "4.0"
+  var plain = parseFloat(servingsStr);
+  if (!isNaN(plain) && plain > 0) return plain;
+  // Handle strings like "Serves 4", "Makes 6", "4 servings", "serves 4-6"
+  var match = String(servingsStr).match(/(\d+(?:\.\d+)?)/);
+  if (match) { var n = parseFloat(match[1]); if (!isNaN(n) && n > 0) return n; }
+  return 1;
+}
+
+function scaleIngredient(ingredient, ratio) {
+  if (Math.abs(ratio - 1) < 0.01) return ingredient;
+  return ingredient.replace(/^(\d+\/\d+|\d+\.?\d*)/,function(match){
+    var num;
+    if (match.indexOf('/') !== -1) {
+      var parts = match.split('/');
+      num = parseFloat(parts[0]) / parseFloat(parts[1]);
+    } else {
+      num = parseFloat(match);
+    }
+    if (isNaN(num) || num === 0) return match;
+    var scaled = num * ratio;
+    if (scaled === Math.round(scaled)) return String(Math.round(scaled));
+    return toNiceFraction(scaled);
+  });
+}
+function toNiceFraction(n){var r=Math.round(n*4)/4;var w=Math.floor(r);var f=r-w;var fs='';if(Math.abs(f-0.25)<0.01)fs='¼';else if(Math.abs(f-0.5)<0.01)fs='½';else if(Math.abs(f-0.75)<0.01)fs='¾';if(w===0)return fs||n.toFixed(1);return fs?w+fs:String(w);}
+function buildNutriBadge(label,val,unit){return'<div style="background:var(--warm-white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 4px;"><div style="font-size:15px;font-weight:500;color:var(--ink);">'+Math.round(val||0)+unit+'</div><div style="font-size:10px;color:var(--ink-faint);margin-top:2px;">'+label+'</div></div>';}
+
+function renderShopping(app) {
+  var s=state.shopping; var likelyItems=state.shoppingLikely||[];
+  var categories=Object.keys(s); var costs=state.shoppingCosts||{}; var activeStore=state.activeStore||'';
+  var plainText='Shopping List'+(activeStore?' ('+activeStore+')':'')+'\n\n';
+  var weeklyTotal=0;
+  categories.forEach(function(cat){plainText+=cat.toUpperCase()+'\n';s[cat].forEach(function(item){var cost=costs[item];plainText+='• '+item+(cost?' (~$'+cost.toFixed(2)+')':'')+'\n';if(cost)weeklyTotal+=cost;});plainText+='\n';});
+  if(likelyItems.length){plainText+='YOU LIKELY HAVE THIS\n';likelyItems.forEach(function(item){plainText+='• '+item+'\n';});plainText+='\n';}
+  if(weeklyTotal>0)plainText+='ESTIMATED TOTAL: ~$'+weeklyTotal.toFixed(2)+'\n';
+  state._shoppingText=plainText;
+  app.appendChild(div('fade-in','<div class="week-header"><button class="btn btn-outline btn-sm" onclick="state.view=\'plan\';render()">← Back to plan</button><div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;">Shopping list</div><div></div></div>'));
+  var stores=state.profile.stores||[];
+  if(stores.length>0){var storeHtml='<div style="margin-bottom:12px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-faint);margin-bottom:8px;">Shopping at</div><div style="display:flex;flex-wrap:wrap;gap:6px;">';stores.forEach(function(store,si){var isActive=activeStore===store;storeHtml+='<button onclick="setActiveStoreByIndex('+si+')" style="padding:6px 14px;border-radius:999px;font-size:13px;cursor:pointer;border:1px solid '+(isActive?'var(--accent)':'var(--border-med)')+';background:'+(isActive?'var(--accent-light)':'var(--cream)')+';color:'+(isActive?'var(--accent)':'var(--ink-light)')+';">'+esc(store)+'</button>';});storeHtml+='</div></div>';app.appendChild(div('fade-in',storeHtml));}
+  if(weeklyTotal>0){var multiplier=state.costMultiplier||1.0;var store=(state.activeStore||'').toLowerCase();
+    var isAmazonFresh=store.indexOf('amazon')!==-1;
+    var multiplierNote='';
+    if(isAmazonFresh){
+      multiplierNote='<div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1px solid rgba(200,90,42,0.3);border-radius:999px;padding:3px 10px;"><span style="font-size:11px;color:var(--accent);">Prices calibrated for Amazon Fresh (Mountain View)</span></div>';
+    } else if(multiplier>1.0){
+      multiplierNote='<div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1px solid rgba(200,90,42,0.3);border-radius:999px;padding:3px 10px;"><span style="font-size:11px;color:var(--accent);">'+Math.round((multiplier-1)*100)+'% regional/store premium applied</span></div>';
+    }app.appendChild(div('card fade-in','<div style="display:flex;align-items:baseline;justify-content:space-between;"><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-faint);margin-bottom:4px;">Estimated weekly total</div><div style="font-family:\'Fraunces\',serif;font-size:28px;font-weight:300;">$'+weeklyTotal.toFixed(2)+'</div>'+multiplierNote+'</div>'+(activeStore?'<div style="font-size:12px;color:var(--ink-faint);text-align:right;">'+esc(activeStore)+'<br>'+esc(state.profile.location||'')+'</div>':'')+'</div><div style="font-size:11px;color:var(--ink-faint);margin-top:8px;line-height:1.5;">Conservative AI estimates — actual prices may be lower. Always verify at checkout.</div>'));}
+  app.appendChild(div('fade-in','<div style="display:flex;gap:8px;margin-bottom:14px;"><button class="btn btn-'+(state.copied?'outline':'primary')+' btn-sm" onclick="copyList()" style="flex:1;">'+(state.copied?'✓ Copied!':'📋 Copy list')+'</button><a href="https://www.instacart.com" target="_blank" class="btn btn-outline btn-sm" style="flex:1;text-decoration:none;justify-content:center;">Instacart ↗</a><a href="https://www.wholefoodsmarket.com" target="_blank" class="btn btn-outline btn-sm" style="flex:1;text-decoration:none;justify-content:center;">Whole Foods ↗</a></div>'));
+  categories.forEach(function(cat){var items=s[cat];var card=div('card fade-in','');var html='<div class="sec-label">'+esc(cat)+'</div>';items.forEach(function(item){var key=cat+'::'+item;var checked=!!state.checkedItems[key];var boxBg=checked?'var(--accent)':'transparent';var boxBorder=checked?'var(--accent)':'var(--border-med)';var checkMark=checked?'<span style="color:#fff;font-size:11px;font-weight:600;">✓</span>':'';var textStyle=checked?'text-decoration:line-through;color:var(--ink-faint);':'';var displayItem=item;var mealTag='';var dotIdx=item.indexOf(' · ');if(dotIdx!==-1){mealTag=item.slice(dotIdx+3);displayItem=item.slice(0,dotIdx);}displayItem=displayItem.replace(/\s*—\s*\$[\d.]+/,'').trim();var cost=costs[item];var costStr=cost?'~$'+cost.toFixed(2):'';html+='<div class="shop-row" onclick="toggleCheck(\''+key+'\')" ><div class="check-box" style="border:1.5px solid '+boxBorder+';background:'+boxBg+';">'+checkMark+'</div><div style="flex:1;min-width:0;"><span class="shop-item" style="'+textStyle+'">'+esc(displayItem)+'</span>'+(mealTag?'<span style="font-size:11px;color:var(--ink-faint);margin-left:6px;">· '+esc(mealTag)+'</span>':'')+'</div>'+(costStr?'<span style="font-size:12px;color:var(--ink-faint);flex-shrink:0;margin-left:8px;">'+costStr+'</span>':'')+'</div>';});card.innerHTML=html;app.appendChild(card);});
+  var allLikely=likelyItems.slice();(state.profile.staples||[]).filter(function(s){return s.active;}).forEach(function(s){if(allLikely.indexOf(s.name)===-1)allLikely.push(s.name);});
+  if(allLikely.length>0){var ld=div('likely-section fade-in','');var lh='<div class="likely-label">You likely have this</div><div class="likely-sublabel">Pantry staples and subscription items. Add to cart only if running low.</div>';allLikely.forEach(function(item){var key='likely::'+item;var checked=!!state.checkedItems[key];var boxBg=checked?'var(--likely-text)':'transparent';var boxBorder=checked?'var(--likely-text)':'var(--likely-border)';var checkMark=checked?'<span style="color:#fff;font-size:11px;font-weight:600;">✓</span>':'';var textStyle=checked?'text-decoration:line-through;opacity:0.5;':'';lh+='<div class="likely-row" onclick="toggleCheck(\''+key+'\')" ><div class="check-box" style="border:1.5px solid '+boxBorder+';background:'+boxBg+';">'+checkMark+'</div><span style="font-size:14px;color:var(--likely-text);'+textStyle+'">'+esc(item)+'</span></div>';});ld.innerHTML=lh;app.appendChild(ld);}
+}
+
+function renderNutritionReport(app) {
+  var days=(state.plan&&state.plan.days)||[];
+  var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
+  app.appendChild(div('fade-in','<div class="week-header"><button class="btn btn-outline btn-sm" onclick="state.view=\'plan\';render()">← Back to plan</button><div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;">Nutrition</div><div></div></div>'));
+  app.appendChild(div('','<div style="background:#FBF3DC;border:1px solid rgba(184,134,11,0.25);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--ink-light);margin-bottom:14px;">Estimates based on standard portions. Recipes load in the background — check back in a moment if data is missing.</div>'));
+  var weekTotals={calories:0,protein_g:0,carbs_g:0,fat_g:0,sugar_g:0,daysWithData:0};
+  days.forEach(function(day){var d=calcDayNutrition(day,mealOrder);if(d.hasData){weekTotals.calories+=d.calories;weekTotals.protein_g+=d.protein_g;weekTotals.carbs_g+=d.carbs_g;weekTotals.fat_g+=d.fat_g;weekTotals.sugar_g+=d.sugar_g;weekTotals.daysWithData++;}});
+  if(weekTotals.daysWithData>0){var wc=div('card fade-in','');wc.innerHTML='<div class="sec-label">Weekly total ('+weekTotals.daysWithData+' of 7 days)</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;margin-bottom:12px;">'+buildNutriBadge('Calories',weekTotals.calories,'')+buildNutriBadge('Protein',weekTotals.protein_g,'g')+buildNutriBadge('Carbs',weekTotals.carbs_g,'g')+buildNutriBadge('Fat',weekTotals.fat_g,'g')+buildNutriBadge('Sugar',weekTotals.sugar_g,'g')+'</div><div class="sec-label" style="margin-top:4px;">Daily average</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;">'+buildNutriBadge('Calories',weekTotals.calories/weekTotals.daysWithData,'')+buildNutriBadge('Protein',weekTotals.protein_g/weekTotals.daysWithData,'g')+buildNutriBadge('Carbs',weekTotals.carbs_g/weekTotals.daysWithData,'g')+buildNutriBadge('Fat',weekTotals.fat_g/weekTotals.daysWithData,'g')+buildNutriBadge('Sugar',weekTotals.sugar_g/weekTotals.daysWithData,'g')+'</div>';app.appendChild(wc);}
+  else{app.appendChild(div('card fade-in','<div style="text-align:center;padding:1.5rem;color:var(--ink-light);font-size:14px;">Still loading recipes in the background. Check back in a moment.</div>'));}
+  var dc=div('card fade-in','');var dh='<div class="sec-label">By day</div>';
+  days.forEach(function(day,di){var d=calcDayNutrition(day,mealOrder);dh+='<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="jumpDay('+di+');state.view=\'plan\';render();"><div style="min-width:90px;font-size:13px;font-weight:500;">'+esc(day.day)+(day.event?'<div style="margin-top:2px;"><span class="event-pill" style="font-size:10px;">'+esc(day.event)+'</span></div>':'')+'</div>'+(d.hasData?'<div style="display:flex;gap:12px;font-size:13px;color:var(--ink-light);"><span><strong style="color:var(--ink);">'+Math.round(d.calories)+'</strong> cal</span><span><strong style="color:var(--ink);">'+Math.round(d.protein_g)+'g</strong> protein</span><span><strong style="color:var(--ink);">'+Math.round(d.carbs_g)+'g</strong> carbs</span></div>':'<div style="font-size:12px;color:var(--ink-faint);font-style:italic;">Still loading...</div>')+'</div>';});
+  dc.innerHTML=dh;app.appendChild(dc);
+}
+
+function calcDayNutrition(day,mealOrder){var totals={calories:0,protein_g:0,carbs_g:0,fat_g:0,sugar_g:0,hasData:false};mealOrder.forEach(function(type){if(day[type]&&day[type].nutrition){var n=day[type].nutrition;var di=(state.plan&&state.plan.days||[]).indexOf(day);var mealKey=di+'_'+type;var servings=(state.servingsConsumed&&state.servingsConsumed[mealKey])?state.servingsConsumed[mealKey]:1;totals.calories+=(n.calories||0)*servings;totals.protein_g+=(n.protein_g||0)*servings;totals.carbs_g+=(n.carbs_g||0)*servings;totals.fat_g+=(n.fat_g||0)*servings;totals.sugar_g+=(n.sugar_g||0)*servings;totals.hasData=true;}});return totals;}
+
+// ── Actions ──
+function saveKey(){state.apiKey=document.getElementById('apiKeyInput').value.trim();save();render();}
+function showAddForm(){state.showAddForm=true;state.newMember={name:'',age:'',activity:'',canCook:false,notes:''};render();}
+function cancelAdd(){state.showAddForm=false;render();}
+function toggleMemberExpand(i){state.expandedMember=state.expandedMember===i?null:i;render();}
+function toggleMemberCook(i){state.members[i].canCook=!state.members[i].canCook;save();render();}
+function toggleNewMemberCook(){state.newMember.canCook=!state.newMember.canCook;render();}
+function setNewMemberNP(id){state.newMember.activity=id;render();}
+
+// Dynamic member NP setter — works for any index
+function setMemberNP(i,id){state.members[i].activity=id;render();}
+
+// Expose per-member NP setters dynamically
+for(var _npi=0;_npi<20;_npi++){
+  (function(idx){
+    window['setMemberNP_'+idx]=function(id){state.members[idx].activity=id;render();};
+  })(_npi);
+}
+
+function saveMemberEdit(i){
+  var n=document.getElementById('em-name-'+i);
+  var a=document.getElementById('em-age-'+i);
+  var dl=document.getElementById('em-dislikes-'+i);
+  var dt=document.getElementById('em-dietary-'+i);
+  var sch=document.getElementById('em-schedule-'+i);
+  var ap=document.getElementById('em-appliances-'+i);
+  var nt=document.getElementById('em-notes-'+i);
+  var ct=document.getElementById('em-cooktime-'+i);
+  if(n)state.members[i].name=n.value.trim();
+  if(a)state.members[i].age=a.value.trim();
+  if(dl)state.members[i].dislikes=dl.value.trim();
+  if(dt)state.members[i].dietaryNeeds=dt.value.trim();
+  if(sch)state.members[i].schedule=sch.value.trim();
+  if(ap)state.members[i].appliances=ap.value.trim();
+  if(nt)state.members[i].notes=nt.value.trim();
+  if(ct)state.members[i].cookTime=ct.value.trim();
+  state.expandedMember=null;save();render();
+}
+
+function saveMember(){
+  var nm=state.newMember;
+  if(!nm.name.trim()){state.error='Please enter a name.';render();return;}
+  state.error='';
+  state.members.push({
+    name:nm.name.trim(),
+    age:nm.age.trim(),
+    activity:nm.activity,
+    canCook:nm.canCook,
+    dislikes:nm.dislikes||'',
+    dietaryNeeds:nm.dietaryNeeds||'',
+    notes:nm.notes||'',
+    schedule:'',appliances:'',cookTime:''
+  });
+  state.showAddForm=false;
+  state.newMember={name:'',age:'',activity:'',canCook:false,dislikes:'',dietaryNeeds:'',notes:''};
+  save();render();
+}
+
+function removeMember(i){state.members.splice(i,1);save();render();}
+function toggleMeal(m){if(state.mealTypes.has(m)){if(state.mealTypes.size>1)state.mealTypes.delete(m);}else state.mealTypes.add(m);save();render();}
+function goSetup(){state.view='setup';state.error='';render();}
+function startNewWeek(){archiveCurrentWeek();state.weekCtx='';state.foodNotes='';state.weekServings=null;state.weekVolunteers={};state.plan=null;state.shopping=null;state.prepGuide=null;state.checkedItems={};state.checkedPrepItems={};save();state.view='setup';state.error='';render();}
+function goBack(){
+  // If we have a plan, go to plan; otherwise go to setup (main menu)
+  var dest=state.prevView||'setup';
+  // Never go back to loading screens
+  if(dest==='loading'||dest==='recipe-loading'||dest==='shopping-loading'||dest==='prep-loading') dest='plan';
+  // If destination is plan but no plan exists, go to setup
+  if(dest==='plan'&&(!state.plan||!state.plan.days)) dest='setup';
+  state.view=dest;
+  render();
+}
+function goProfile(){
+  // Always capture where we came from so Settings back button works reliably.
+  // Do not overwrite prevView if we're already in settings (re-render edge case).
+  if(state.view !== 'profile') state.prevView = state.view;
+  state.view='profile';
+  render();
+}
+function prevDay(){if(state.dayIndex>0){state.dayIndex--;state.editing=null;render();}}
+function nextDay(){if(state.dayIndex<((state.plan&&state.plan.days)||[]).length-1){state.dayIndex++;state.editing=null;render();}}
+function jumpDay(i){state.dayIndex=i;state.editing=null;render();}
+function setPV(v){state.planView=v;state.editing=null;render();}
+function editMeal(di,type){state.editing={di:di,type:type};render();setTimeout(function(){var i=document.getElementById('edit-input');if(i){i.focus();i.select();}},50);}
+function cancelEdit(){state.editing=null;render();}
+function cancelSwap(){state.suggestion=null;state.rejected=[];render();}
+function clearReplacementSlot(di,type){delete state.plan.days[di][type];state.suggestion=null;state.rejected=[];render();}
+function acceptSwap(){if(!state.suggestion)return;var s=state.suggestion;state.plan.days[s.di][s.type]=s.meal;state.suggestion=null;state.rejected=[];render();}
+function rejectSwap(){var s=state.suggestion;state.rejected=state.rejected||[];state.rejected.push(s.meal.name);state.suggestion=null;swapMeal(s.di,s.type,state.rejected);}
+function startMove(di,type){state.moving={di:di,type:type};state.editing=null;state.fbTarget=null;render();}
+function moveTo(targetDi){var m=state.moving;if(!m)return;var days=state.plan.days;var srcMeal=days[m.di][m.type];var destMeal=days[targetDi][m.type];state.moving=null;if(!destMeal||!destMeal.name){days[targetDi][m.type]=srcMeal;delete days[m.di][m.type];render();return;}state.moveConflict={fromDi:m.di,toDi:targetDi,type:m.type,srcMeal:srcMeal,destMeal:destMeal};render();}
+function resolveMoveConflict(action){var c=state.moveConflict;if(!c)return;var days=state.plan.days;if(action==='swap'){days[c.fromDi][c.type]=c.destMeal;days[c.toDi][c.type]=c.srcMeal;state.moveConflict=null;render();}else{days[c.toDi][c.type]=c.srcMeal;delete days[c.fromDi][c.type];state.moveConflict=null;generateReplacementForVacatedSlot(c.fromDi,c.type);}}
+function generateReplacementForVacatedSlot(di,type){state.plan.days[di][type]={name:'__generating__',note:''};state.swapping={di:di,type:type};render();var day=state.plan.days[di];var ms=state.members.map(function(m){return m.name+(m.age?' (age '+m.age+')':"")+(m.activity?': '+m.activity:"")+(m.notes?' — '+m.notes:'');}).join('; ');var disliked=Object.entries(state.feedback).filter(function(e){return e[1].rating===-1;}).map(function(e){return e[0];}).join(', ');var prompt='Suggest ONE '+type+' meal for '+day.day+' to fill a gap in a 7-day meal plan.\n'+(day.event?'This day: '+day.event+'\n':'')+(ms?'Household: '+ms+'\n':'')+(disliked?'Do NOT suggest these (disliked): '+disliked+'\n':'')+(state.foodNotes?'Food preferences: '+state.foodNotes+'\n':'')+'Reply ONLY with raw JSON: {"name":"...","note":"..."}';callAPI(prompt,200,function(m){state.plan.days[di][type]=m;state.swapping=null;state.suggestion={di:di,type:type,meal:m,isReplacement:true};render();},function(e){delete state.plan.days[di][type];state.swapping=null;state.error='Could not generate a replacement: '+e;render();});}
+function rateMeal(di,type,rating){var name=state.plan.days[di][type].name;var ex=state.feedback[name]||{};if(ex.rating===rating){delete state.feedback[name];save();render();return;}state.feedback[name]=Object.assign({},ex,{rating:rating});save();if(rating===-1)state.fbTarget={di:di,type:type,name:name};render();if(rating===-1)setTimeout(function(){var i=document.getElementById('feedback-note-input');if(i)i.focus();},50);}
+function saveFBNote(di,type){var inp=document.getElementById('feedback-note-input');var note=inp&&inp.value.trim();var name=state.plan.days[di][type].name;if(note)state.feedback[name]=Object.assign({},state.feedback[name],{note:note});state.fbTarget=null;save();render();}
+function toggleCheck(key){state.checkedItems[key]=!state.checkedItems[key];render();}
+function copyList(){if(!state._shoppingText)return;var done=function(){state.copied=true;render();setTimeout(function(){state.copied=false;render();},2500);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(state._shoppingText).then(done).catch(function(){var ta=document.createElement('textarea');ta.value=state._shoppingText;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done();});}else{var ta=document.createElement('textarea');ta.value=state._shoppingText;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done();}}
+function saveEdit(di,type){var inp=document.getElementById('edit-input');if(!inp||!inp.value.trim()){state.editing=null;render();return;}var val=inp.value.trim();if(!/swap|replace|instead|change|use|sub/i.test(val)){state.plan.days[di][type].name=val;state.editing=null;render();return;}var orig=state.plan.days[di][type].name;state.editing=null;state.swapping={di:di,type:type};render();callAPI('Take this meal: "'+orig+'"\nApply this change: "'+val+'"\nReturn updated meal name.\nReply ONLY with raw JSON: {"name":"...","note":"..."}',200,function(m){state.suggestion={di:di,type:type,meal:m};state.swapping=null;render();},function(e){state.error='Edit failed: '+e;state.swapping=null;render();});}
+function changeProfileServing(type,delta){if(!state.profile.servings)state.profile.servings={breakfast:2,lunch:5,dinner:5,snacks:3};var newVal=(state.profile.servings[type]||1)+delta;if(newVal<1)return;state.profile.servings[type]=newVal;save();render();}
+function changeWeekServing(type,delta){if(!state.weekServings)state.weekServings={};var current=state.weekServings[type]!=null?state.weekServings[type]:getServings(type);var newVal=current+delta;if(newVal<1)return;state.weekServings[type]=newVal;save();render();}
+function changeServings(mealKey,newVal){if(newVal<0.5)return;if(!state.servingsConsumed)state.servingsConsumed={};state.servingsConsumed[mealKey]=Math.round(newVal*2)/2;render();}
+function toggleStaple(i){state.profile.staples[i].active=!state.profile.staples[i].active;save();render();}
+function removeStaple(i){state.profile.staples.splice(i,1);save();render();}
+function addStaple(){var inp=document.getElementById('staple-input');if(!inp||!inp.value.trim())return;state.profile.staples.push({name:inp.value.trim(),active:true});inp.value='';save();render();setTimeout(function(){var i=document.getElementById('staple-input');if(i)i.focus();},50);}
+function addStore(){var inp=document.getElementById('store-input');if(!inp||!inp.value.trim())return;if(!state.profile.stores)state.profile.stores=[];state.profile.stores.push(inp.value.trim());if(!state.activeStore)state.activeStore=inp.value.trim();inp.value='';save();render();setTimeout(function(){var i=document.getElementById('store-input');if(i)i.focus();},50);}
+function removeStore(i){state.profile.stores.splice(i,1);if(state.activeStore===state.profile.stores[i])state.activeStore=state.profile.stores[0]||'';save();render();}
+function setActiveStoreByIndex(i){var stores=state.profile.stores||[];if(stores[i]!==undefined){state.activeStore=stores[i];save();reapplyCostMultiplier();render();}}
+function toggleVolunteer(dayIndex,memberIndex){var days7=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];var cookableMembers=state.members.filter(function(m){return m.canCook;});var day=days7[dayIndex];var memberName=cookableMembers[memberIndex]?cookableMembers[memberIndex].name:null;if(!day||!memberName)return;if(!state.weekVolunteers)state.weekVolunteers={};if(!state.weekVolunteers[day])state.weekVolunteers[day]=[];var idx=state.weekVolunteers[day].indexOf(memberName);if(idx===-1)state.weekVolunteers[day].push(memberName);else state.weekVolunteers[day].splice(idx,1);save();render();}
+
+function saveRecipeNote(){
+  var inp=document.getElementById('recipe-note-input');
+  if(!inp)return;
+  var key=state.recipeNotesKey||'';
+  if(!key)return;
+  var val=inp.value;
+  if(val.trim()){state.recipeNotes[key]=val.trim();}else{delete state.recipeNotes[key];}
+  save();
+}
+function clearRecipeNote(){
+  var key=state.recipeNotesKey||'';
+  if(!key)return;
+  delete state.recipeNotes[key];
+  save();
+  render();
+}
+function deleteRecipeNote(key){
+  delete state.recipeNotes[key];
+  save();
+  render();
+}
+function clearAllRecipeNotes(){
+  if(!confirm('Clear all recipe notes? This cannot be undone.'))return;
+  state.recipeNotes={};
+  save();
+  render();
+}
+function saveProfile(){
+  var fields=['location'];
+  fields.forEach(function(f){var el=document.getElementById('prof-'+f);if(el)state.profile[f]=el.value.trim();});
+  var cuisines=document.getElementById('prof-cuisines');if(cuisines)state.profile.cuisines=cuisines.value.trim();
+  var prep=document.getElementById('prof-mealPrepDay');if(prep)state.profile.mealPrepDay=prep.value;
+  if(!state.profile.servings)state.profile.servings={breakfast:2,lunch:5,dinner:5,snacks:3};
+  if(!state.profile.staples)state.profile.staples=[];
+  save();state.error='';
+  // v4.8: both save buttons confirm
+  var confirmSave = function(btn){ if(btn){ var orig=btn.textContent; btn.textContent='Saved!'; setTimeout(function(){btn.textContent=orig;},1500); } };
+  confirmSave(document.getElementById('save-btn-top'));
+  confirmSave(document.getElementById('save-btn-bottom'));
+}
+
+// ── API ──
+function friendlyError(msg){if(!msg)return'Something went wrong. Please try again.';if(msg.indexOf('exceeded_limit')!==-1||msg.indexOf('rate')!==-1)return'API rate limit reached. Check console.anthropic.com.';if(msg.indexOf('invalid_api_key')!==-1||msg.indexOf('authentication')!==-1)return'Invalid API key. Please check your key in settings.';if(msg.indexOf('overloaded')!==-1)return'Claude is overloaded. Wait a moment and try again.';if(msg.charAt(0)==='{')return'API error. Please try again.';return msg.length>120?msg.slice(0,120)+'…':msg;}
+
+function callAPI(prompt,maxTokens,onSuccess,onError){
+  // Uses Netlify proxy function — API key is stored server-side in Netlify
+  // environment variables, never exposed in the browser.
+  fetch('/api/proxy',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.error)throw new Error(JSON.stringify(data.error));
+    var text=(data.content&&data.content[0]&&data.content[0].text)||'';
+    var si=text.indexOf('{'),ei=text.lastIndexOf('}');
+    onSuccess(JSON.parse(text.slice(si,ei+1)));
+  }).catch(function(e){onError(friendlyError(e.message||String(e)));});
+}
+
+// ── Generate Plan ──
+function generatePlan(){
+  var wc=document.getElementById('week-ctx');
+  if(wc)state.weekCtx=wc.value.trim();
+  save();
+  if(state.profile.setupComplete&&!state.weekCtx){state.error='Tell me a bit about your week first.';render();return;}
+  // Archive current week before generating a new plan
+  if(state.plan&&state.plan.days&&state.plan.days.length) archiveCurrentWeek();
+  state.error='';state.view='loading';render();
+  var p=state.profile;
+  var memberStr=state.members.length
+    ?state.members.map(function(m){
+        var npDesc={'Athlete':'high carb + high protein, calorie-dense, timed around training','Active Work':'moderate-high protein, sustained energy, avoid afternoon crashes','Standard':'balanced macros, no special tuning','Stationary':'lower calorie, lighter meals, more fiber','Child/Teen':'age-appropriate portions, growth-supportive protein, kid-friendly recipes','Balanced':'variety-focused, flexible macros'};
+        var str=m.name+(m.age?' (age '+m.age+')':'');
+        if(m.activity){str+=' — Nutrition Profile: '+m.activity;if(npDesc[m.activity])str+=' ('+npDesc[m.activity]+(m.activity==='Child/Teen'&&m.age?', age '+m.age+' — scale portions accordingly':'')+')'}
+        if(m.dislikes)str+=' — foods to avoid: '+m.dislikes;
+        if(m.dietaryNeeds)str+=' — dietary needs: '+m.dietaryNeeds;
+        if(m.schedule)str+=' — weekly schedule: '+m.schedule;
+        if(m.notes)str+=' — notes: '+m.notes;
+        if(m.canCook)str+=' — can cook'+(m.appliances?', uses: '+m.appliances:'')+(m.cookTime?', cook time: '+m.cookTime:'');
+        return str;
+      }).join('\n')
+    :'household not specified';
+  var profileCtx='';
+  if(p.cuisines)profileCtx+='Favorite cuisines: '+p.cuisines+'\n';
+  var memberAppliances=state.members.filter(function(m){return m.canCook&&m.appliances;}).map(function(m){return m.name+' uses: '+m.appliances;});
+  if(memberAppliances.length)profileCtx+='Member appliances: '+memberAppliances.join('; ')+'\n';
+  if(p.mealPrepDay)profileCtx+='Meal prep day: '+p.mealPrepDay+'\n';
+  var vols=state.weekVolunteers||{};var volCtx='';
+  Object.keys(vols).forEach(function(day){var names=vols[day];if(!names||!names.length)return;var times=names.map(function(name){var m=state.members.find(function(mem){return mem.name===name;});return(m&&m.cookTime)?m.cookTime:'';}).filter(Boolean);volCtx+=day+': '+names.join(' & ')+' cooking'+(times.length?' (available time: '+times.join(' / ')+')':'')+'.\n';});
+  if(volCtx)profileCtx+='Volunteer cooks this week:\n'+volCtx;
+  var disliked=Object.entries(state.feedback).filter(function(e){return e[1].rating===-1;}).map(function(e){return e[0]+(e[1].note?' ('+e[1].note+')':'');}).join(', ');
+  var liked=Object.entries(state.feedback).filter(function(e){return e[1].rating===1;}).map(function(e){return e[0];}).join(', ');
+  var noteEntries=Object.entries(state.recipeNotes||{}).filter(function(e){return e[1]&&e[1].trim();});
+  var recipeNotesCtx=noteEntries.length?'Household notes on past recipes (use to improve suggestions):\n'+noteEntries.map(function(e){return'- '+e[0]+': '+e[1];}).join('\n')+'\n':'';
+  var prompt='You are a nutrition-aware meal planner.\n\nHousehold members:\n'+memberStr+'\n'+(state.weekCtx?'Week context: '+state.weekCtx+'\n':'')+(profileCtx||'')+(state.foodNotes?'Additional notes: '+state.foodNotes+'\n':'')+(disliked?'Do NOT suggest these meals (disliked): '+disliked+'\n':'')+(liked?'This household enjoys: '+liked+'\n':'')+(recipeNotesCtx||'')+'Meal types requested: '+[...state.mealTypes].join(', ')+'\n\nCreate a 7-day meal plan Monday-Sunday.\nRULES:\n- Follow each member\'s Nutrition Profile precisely.\n- Child/Teen: age-appropriate portions, kid-friendly recipes.\n- Respect all member notes as hard constraints.\n- One dinner feeds the whole household.\n- Use member appliances actively in recipe choices.\n- MEAL VARIETY: Default to varied meals across the week, BUT if the user\'s week context requests repeated meals (e.g. \'1-3 breakfast types\' or \'repeat lunches\'), follow that instruction exactly — it overrides the variety default.\n- MEMBER-SPECIFIC SCHEDULING: The week context may mention specific household members by name with activities (e.g. \'Ryan long run Saturday\', \'Evan football Friday\'). When you see a member\'s name next to an activity on a specific day, adjust that day\'s meals to support their physical demands — increase carbs/protein for athletic events, adjust portions accordingly. Apply these changes per-member, not household-wide.\n\nReply ONLY with raw JSON, no markdown:\n{"days":[{"day":"Monday","event":null,"breakfast":{"name":"...","note":"..."},"dinner":{"name":"...","note":"..."}}]}\n\nOnly include keys for requested meal types. "event" is short label or null. "note" is one nutrition sentence.';
+  callAPI(prompt,4000,
+    function(plan){state.plan=plan;state.dayIndex=0;state.view='plan';render();if(state.bgFetch)fetchAllRecipesInBackground(plan);},
+    function(e){state.view='setup';state.error='Something went wrong: '+e;render();}
+  );
+}
+
+function buildRecipeContext(day,type){
+  var ctx='';
+  if(day.event)ctx+='Day event: '+day.event+'\n';
+  var memberCtx=state.members.map(function(m){var npShort={'Athlete':'high carb+protein','Active Work':'sustained energy','Standard':'balanced','Stationary':'lower cal','Child/Teen':'age-appropriate, kid-friendly','Balanced':'flexible'};var parts=[];if(m.activity&&npShort[m.activity])parts.push('profile: '+m.activity+(m.activity==='Child/Teen'&&m.age?' age '+m.age:''));if(m.schedule)parts.push(m.schedule);if(m.notes)parts.push('notes: '+m.notes);return parts.length?m.name+(m.age?' (age '+m.age+')':'')+': '+parts.join(', '):'';}).filter(Boolean).join('; ');
+  if(memberCtx)ctx+='Household context: '+memberCtx+'\n';
+  if(state.profile.dietaryNeeds)ctx+='Dietary needs: '+state.profile.dietaryNeeds+'\n';
+  return ctx;
+}
+
+function fetchAllRecipesInBackground(plan){
+  var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
+  var queue=[];
+  (plan.days||[]).forEach(function(day,di){mealOrder.forEach(function(type){if(day[type]&&day[type].name)queue.push({di:di,type:type,meal:day[type],day:day});});});
+  queue.forEach(function(item,idx){setTimeout(function(){if(item.meal.nutrition)return;var actCtx=buildRecipeContext(item.day,item.type);var prompt='Give a simple home-cook recipe for: '+item.meal.name+'\n'+(item.meal.note?'Nutrition note: '+item.meal.note+'\n':'')+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}';callAPI(prompt,1200,function(r){if(state.plan&&state.plan.days[item.di]&&state.plan.days[item.di][item.type]){state.plan.days[item.di][item.type].recipe=r;if(r.nutrition)state.plan.days[item.di][item.type].nutrition=r.nutrition;}if(state.view==='nutrition')render();},function(){});},idx*800);});
+}
+
+function swapMeal(di,type,rejected){state.swapping={di:di,type:type};state.editing=null;state.suggestion=null;render();var day=state.plan.days[di];var ms=state.members.map(function(m){return m.name+(m.age?' (age '+m.age+')':"")+(m.activity?': '+m.activity:"")+(m.notes?' — '+m.notes:'');}).join('; ');var rejStr=(rejected&&rejected.length)?'Do NOT suggest: '+rejected.join(', ')+'\n':'';var prompt='Suggest ONE alternative meal to replace "'+day[type].name+'" for '+type+' on '+day.day+'.\n'+(day.event?'This day: '+day.event+'\n':'')+(state.foodNotes?'Food preferences: '+state.foodNotes+'\n':'')+(ms?'Household: '+ms+'\n':'')+rejStr+'Make it clearly different.\nReply ONLY with raw JSON: {"name":"...","note":"..."}';callAPI(prompt,200,function(m){state.suggestion={di:di,type:type,meal:m};state.swapping=null;render();},function(e){state.error='Swap failed: '+e;state.swapping=null;render();});}
+
+function loadRecipe(di,type){var meal=state.plan.days[di][type];var day=state.plan.days[di];state.recipeDi=di;state.recipeType=type;if(meal.recipe){state.recipe=meal.recipe;state.view='recipe';render();return;}state.view='recipe-loading';render();var actCtx=buildRecipeContext(day,type);var prompt='Give a simple home-cook recipe for: '+meal.name+'\n'+(meal.note?'Nutrition note: '+meal.note+'\n':'')+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}\n\nNutrition values per serving.';callAPI(prompt,1200,function(r){meal.recipe=r;if(r.nutrition)meal.nutrition=r.nutrition;state.recipe=r;state.view='recipe';render();},function(e){state.view='plan';state.error='Could not load recipe: '+e;render();});}
+
+
+// ── Prep Guide ──
+function generatePrepGuide(){
+  state.view='prep-loading';render();
+  var days=(state.plan&&state.plan.days)||[];
+  var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
+  var mealList=[];
+  days.forEach(function(day){
+    mealOrder.forEach(function(type){
+      if(day[type]&&day[type].name) mealList.push(day.day+' '+type+': '+day[type].name);
+    });
+  });
+  var prepDay=state.profile.mealPrepDay||'Sunday';
+  var householdSize=Math.max(getServings('dinner'),getServings('breakfast'),getServings('lunch')||0);
+  var memberStr=state.members.map(function(m){
+    var parts=[m.name+(m.age?' age '+m.age:'')];
+    if(m.activity)parts.push(m.activity);
+    if(m.canCook&&m.appliances)parts.push('uses '+m.appliances);
+    return parts.join(', ');
+  }).join('; ');
+  var prompt='You are a meal prep expert. Generate a '+prepDay+' meal prep guide for this week\'s meals.\n\n'
+    +'Meals this week:\n'+mealList.join('\n')+'\n\n'
+    +'Household: '+householdSize+' people\n'
+    +(memberStr?'Members: '+memberStr+'\n':'')
+    +'Prep day: '+prepDay+'\n\n'
+    +'Organize tasks into these four sections ONLY. Each task must:\n'
+    +'- Be specific (quantities, cook times, storage instructions)\n'
+    +'- Reference which meals it supports\n'
+    +'- Be ordered by kitchen workflow (e.g. oven items first, then stovetop)\n\n'
+    +'Sections:\n'
+    +'- "Cook & Store": batch-cook grains, proteins, roasted veg that get used across multiple meals\n'
+    +'- "Chop & Portion": raw prep — vegetables, fruits, portioned snacks, anything that saves mid-week knife work\n'
+    +'- "Marinate": proteins or veg needing overnight or multi-hour marinating\n'
+    +'- "Make Ahead": sauces, dressings, overnight oats, dips, anything better made in advance\n\n'
+    +'Only include sections that have actual tasks. Skip empty sections.\n'
+    +'Each task: one clear action sentence + " → " + which meals it supports.\n\n'
+    +'Reply ONLY with raw JSON, no markdown:\n'
+    +'{"prepDay":"'+prepDay+'","sections":[{"title":"Cook & Store","tasks":["Cook 3 cups brown rice (40 min) → Monday dinner, Wednesday lunch"]},{"title":"Chop & Portion","tasks":["..."]}]}';
+
+  callAPI(prompt, 2000,
+    function(guide){
+      state.prepGuide=guide;
+      state.checkedPrepItems={};
+      state.view='prep';
+      save();
+      render();
+    },
+    function(e){
+      state.view='plan';
+      state.error='Could not build prep guide: '+e;
+      render();
+    }
+  );
+}
+
+function renderPrepGuide(app){
+  var guide=state.prepGuide;
+  var prepDay=(guide&&guide.prepDay)||state.profile.mealPrepDay||'Sunday';
+  var sections=(guide&&guide.sections)||[];
+
+  app.appendChild(div('fade-in',
+    '<div class="week-header">'
+    +'<button class="btn btn-outline btn-sm" onclick="state.view=\'plan\';render()">← Back to plan</button>'
+    +'<div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;">'+esc(prepDay)+' Prep</div>'
+    +'<button class="btn btn-outline btn-sm" onclick="generatePrepGuide()">↻ Redo</button>'
+    +'</div>'
+  ));
+
+  // Summary bar
+  var totalTasks=0;
+  sections.forEach(function(s){totalTasks+=(s.tasks||[]).length;});
+  var doneTasks=Object.values(state.checkedPrepItems).filter(Boolean).length;
+  app.appendChild(div('fade-in',
+    '<div style="background:var(--warm-white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">'
+    +'<div><div style="font-size:13px;font-weight:500;color:var(--ink);">'+doneTasks+' of '+totalTasks+' tasks done</div>'
+    +'<div style="font-size:12px;color:var(--ink-faint);margin-top:2px;">Tap any task to check it off</div></div>'
+    +(doneTasks===totalTasks&&totalTasks>0
+      ?'<div style="font-size:22px;">✓</div>'
+      :'<div style="width:80px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;">'
+      +'<div style="width:'+Math.round((doneTasks/Math.max(totalTasks,1))*100)+'%;height:100%;background:var(--accent);border-radius:999px;transition:width .3s;"></div>'
+      +'</div>')
+    +'</div>'
+  ));
+
+  // Section icons
+  var icons={'Cook & Store':'🔥','Chop & Portion':'🔪','Marinate':'🫙','Make Ahead':'📦'};
+
+  sections.forEach(function(section){
+    var tasks=section.tasks||[];
+    if(!tasks.length)return;
+    var card=div('card fade-in','');
+    var html='<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
+      +'<span style="font-size:18px;">'+(icons[section.title]||'📋')+'</span>'
+      +'<div class="sec-label" style="margin-bottom:0;">'+esc(section.title)+'</div>'
+      +'</div>';
+
+    tasks.forEach(function(task,ti){
+      var key=section.title+'::'+ti;
+      var checked=!!state.checkedPrepItems[key];
+      var boxBg=checked?'var(--accent)':'transparent';
+      var boxBorder=checked?'var(--accent)':'var(--border-med)';
+      var checkMark=checked?'<span style="color:#fff;font-size:11px;font-weight:600;">&#10003;</span>':'';
+      var parts=task.split(' → ');
+      var action=parts[0]||task;
+      var meals=parts[1]||'';
+      var safeKey=key.replace(/"/g,'&quot;');
+      var textStyle='font-size:14px;color:var(--ink);line-height:1.5;'+(checked?'text-decoration:line-through;color:var(--ink-faint);':'');
+      html+='<div data-prepkey="'+safeKey+'" onclick="handlePrepTap(this)" style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+        +'<div class="check-box" style="border:1.5px solid '+boxBorder+';background:'+boxBg+';margin-top:2px;flex-shrink:0;">'+checkMark+'</div>'
+        +'<div style="flex:1;">'
+        +'<div style="'+textStyle+'">'+esc(action)+'</div>'
+        +(meals?'<div style="font-size:12px;color:var(--accent);margin-top:3px;">&rarr; '+esc(meals)+'</div>':'')
+        +'</div>'
+        +'</div>';
+    });    card.innerHTML=html;
+    app.appendChild(card);
+  });
+
+  if(!sections.length){
+    app.appendChild(div('card fade-in','<div style="text-align:center;padding:2rem;color:var(--ink-faint);font-size:14px;">No prep tasks generated. Try regenerating.</div>'));
+  }
+
+  // Copy button
+  var prepText=prepDay+' Prep Guide\n\n';
+  sections.forEach(function(s){
+    prepText+=s.title.toUpperCase()+'\n';
+    (s.tasks||[]).forEach(function(t){prepText+='• '+t+'\n';});
+    prepText+='\n';
+  });
+  state._prepText=prepText;
+  app.appendChild(div('fade-in',
+    '<button class="btn btn-primary btn-full" onclick="copyPrepList()" style="margin-top:4px;">'
+    +(state.prepCopied?'✓ Copied!':'📋 Copy prep list')+'</button>'
+  ));
+}
+
+function handlePrepTap(el){
+  var key=el.getAttribute('data-prepkey');
+  if(key) togglePrepItem(key);
+}
+function togglePrepItem(key){
+  state.checkedPrepItems[key]=!state.checkedPrepItems[key];
+  save();render();
+}
+function copyPrepList(){
+  if(!state._prepText)return;
+  var done=function(){state.prepCopied=true;render();setTimeout(function(){state.prepCopied=false;render();},2500);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(state._prepText).then(done).catch(function(){
+      var ta=document.createElement('textarea');ta.value=state._prepText;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done();
+    });
+  } else {
+    var ta=document.createElement('textarea');ta.value=state._prepText;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done();
+  }
+}
+
+
+// ── History ──
+function archiveCurrentWeek(){
+  if(!state.plan||!state.plan.days||!state.plan.days.length) return;
+  var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
+  var meals=[];
+  state.plan.days.forEach(function(day){
+    mealOrder.forEach(function(type){
+      if(day[type]&&day[type].name){
+        var name=day[type].name;
+        meals.push({
+          day: day.day,
+          type: type,
+          name: name,
+          rating: (state.feedback[name]||{}).rating||0,
+          note: (state.recipeNotes&&state.recipeNotes[name])||''
+        });
+      }
+    });
+  });
+  if(!meals.length) return;
+  // Date range label
+  var now=new Date();
+  var weekLabel='Week of '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
+  // Volunteers summary
+  var volSummary=[];
+  Object.keys(state.weekVolunteers||{}).forEach(function(day){
+    var names=state.weekVolunteers[day];
+    if(names&&names.length) volSummary.push(day.slice(0,3)+': '+names.join(' & '));
+  });
+  // Estimated total from shopping
+  var estTotal=0;
+  if(state.shoppingCosts){Object.values(state.shoppingCosts).forEach(function(v){estTotal+=v;});}
+  var entry={
+    id: Date.now(),
+    label: weekLabel,
+    savedAt: now.toISOString(),
+    meals: meals,
+    volunteers: volSummary,
+    estTotal: Math.round(estTotal*100)/100,
+    actualTotal: '',
+    weekNotes: '',
+    weekCtx: state.weekCtx||''
+  };
+  if(!state.history) state.history=[];
+  state.history.unshift(entry);
+  // Keep max 52 weeks
+  if(state.history.length>52) state.history=state.history.slice(0,52);
+  save();
+}
+
+function renderHistory(app){
+  app.appendChild(div('fade-in',
+    '<div class="week-header">'
+    +'<button class="btn btn-outline btn-sm" onclick="goBack()">← Back</button>'
+    +'<div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;">History</div>'
+    +'<div></div>'
+    +'</div>'
+  ));
+
+  var history=state.history||[];
+  if(!history.length){
+    app.appendChild(div('card fade-in',
+      '<div style="text-align:center;padding:2rem;color:var(--ink-faint);">'
+      +'<div style="font-size:28px;margin-bottom:12px;">📋</div>'
+      +'<div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:6px;">No history yet</div>'
+      +'<div style="font-size:13px;line-height:1.6;">Your meal plans will be automatically saved here when you start a new week.</div>'
+      +'</div>'
+    ));
+    return;
+  }
+
+  history.forEach(function(week,wi){
+    var isExpanded=(state.expandedHistory===wi);
+    var likedMeals=week.meals.filter(function(m){return m.rating===1;});
+    var dislikedMeals=week.meals.filter(function(m){return m.rating===-1;});
+    var card=div('card fade-in','');
+    var html='';
+
+    // Week header row
+    html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;cursor:pointer;" onclick="toggleHistoryExpand('+wi+')">'
+      +'<div>'
+      +'<div style="font-family:\'Fraunces\',serif;font-size:17px;font-weight:300;">'+esc(week.label)+'</div>'
+      +'<div style="display:flex;gap:12px;margin-top:5px;flex-wrap:wrap;">'
+      +(week.estTotal>0?'<span style="font-size:12px;color:var(--ink-faint);">Est. $'+week.estTotal.toFixed(2)+'</span>':'')
+      +(week.actualTotal?'<span style="font-size:12px;color:var(--green);font-weight:500;">Actual $'+parseFloat(week.actualTotal).toFixed(2)+'</span>':'')
+      +'<span style="font-size:12px;color:var(--ink-faint);">'+week.meals.length+' meals</span>'
+      +(likedMeals.length?'<span style="font-size:12px;color:var(--green);">👍 '+likedMeals.length+'</span>':'')
+      +(dislikedMeals.length?'<span style="font-size:12px;color:#A32D2D;">👎 '+dislikedMeals.length+'</span>':'')
+      +'</div>'
+      +'</div>'
+      +'<span style="font-size:12px;color:var(--accent);margin-top:2px;">'+(isExpanded?'▲ Less':'▼ View')+'</span>'
+      +'</div>';
+
+    if(isExpanded){
+      html+='<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">';
+
+      // Meals by day
+      var days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+      var mealsByDay={};
+      week.meals.forEach(function(m){
+        if(!mealsByDay[m.day]) mealsByDay[m.day]=[];
+        mealsByDay[m.day].push(m);
+      });
+      days.forEach(function(day){
+        var dayMeals=mealsByDay[day];
+        if(!dayMeals||!dayMeals.length) return;
+        html+='<div style="margin-bottom:12px;">'
+          +'<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-faint);margin-bottom:6px;">'+day+'</div>';
+        dayMeals.forEach(function(m){
+          var ratingIcon=m.rating===1?' 👍':m.rating===-1?' 👎':'';
+          html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">'
+            +'<div style="flex:1;">'
+            +'<div style="font-size:13px;color:var(--ink);">'+esc(m.type[0].toUpperCase()+m.type.slice(1))+' — <span style="font-weight:500;">'+esc(m.name)+'</span>'+ratingIcon+'</div>'
+            +(m.note?'<div style="font-size:11px;color:var(--ink-light);margin-top:3px;line-height:1.4;">📝 '+esc(m.note)+'</div>':'')
+            +'</div>'
+            +'<button data-mealname="'+esc(m.name)+'" onclick="reuseHistoryMeal(this.dataset.mealname)" style="background:none;border:1px solid var(--border-med);border-radius:999px;padding:3px 10px;font-size:11px;color:var(--accent);cursor:pointer;white-space:nowrap;margin-left:10px;">Re-use</button>'
+            +'</div>';
+        });
+        html+='</div>';
+      });
+
+      // Volunteers
+      if(week.volunteers&&week.volunteers.length){
+        html+='<div style="margin-top:8px;margin-bottom:12px;">'
+          +'<div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;color:var(--ink-faint);margin-bottom:6px;">Who cooked</div>'
+          +'<div style="font-size:13px;color:var(--ink-light);">'+esc(week.volunteers.join(' · '))+'</div>'
+          +'</div>';
+      }
+
+      // Actual spend entry
+      html+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">'
+        +'<div style="font-size:12px;font-weight:500;color:var(--ink-light);margin-bottom:6px;">Actual grocery spend</div>'
+        +'<div style="display:flex;gap:8px;align-items:center;">'
+        +'<span style="font-size:16px;color:var(--ink-light);">$</span>'
+        +'<input type="number" id="actual-spend-'+wi+'" class="inline-input" style="width:100px;" placeholder="0.00" value="'+esc(week.actualTotal||'')+'" step="0.01" min="0">'
+        +'<button class="btn btn-outline btn-sm" onclick="saveActualSpend('+wi+')">Save</button>'
+        +(week.estTotal>0&&week.actualTotal?'<span style="font-size:12px;color:'+(parseFloat(week.actualTotal)>week.estTotal?'#A32D2D':'var(--green)')+';">'+(parseFloat(week.actualTotal)>week.estTotal?'↑':'↓')+' $'+Math.abs(parseFloat(week.actualTotal)-week.estTotal).toFixed(2)+' vs estimate</span>':'')
+        +'</div>'
+        +'</div>';
+
+      // Week notes
+      html+='<div style="margin-top:12px;">'
+        +'<div style="font-size:12px;font-weight:500;color:var(--ink-light);margin-bottom:6px;">Week notes</div>'
+        +'<textarea id="week-notes-'+wi+'" rows="2" class="inline-input" style="width:100%;min-height:56px;resize:vertical;line-height:1.5;" placeholder="e.g. Everyone loved the steak. Too many oven meals. Skip the shrimp next time.">'+esc(week.weekNotes||'')+'</textarea>'
+        +'<button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="saveWeekNotes('+wi+')">Save note</button>'
+        +'</div>';
+
+      html+='</div>'; // end expanded
+    }
+
+    card.innerHTML=html;
+    app.appendChild(card);
+  });
+}
+
+function toggleHistoryExpand(wi){
+  state.expandedHistory=state.expandedHistory===wi?null:wi;
+  render();
+}
+function reuseHistoryMeal(name){
+  // Pre-fill week context with the meal name and navigate to setup
+  var existing=state.weekCtx?state.weekCtx.trim():'';
+  var tag='Re-use: '+name;
+  if(existing.indexOf(tag)===-1){
+    state.weekCtx=existing?(existing+'\n'+tag):tag;
+  }
+  save();
+  state.view='setup';
+  render();
+  // Scroll to week context field
+  setTimeout(function(){
+    var el=document.getElementById('week-ctx');
+    if(el){el.focus();el.scrollIntoView({behavior:'smooth',block:'center'});}
+  },100);
+}
+function saveActualSpend(wi){
+  var inp=document.getElementById('actual-spend-'+wi);
+  if(!inp) return;
+  var val=inp.value.trim();
+  if(state.history[wi]) state.history[wi].actualTotal=val;
+  save();
+  render();
+}
+function saveWeekNotes(wi){
+  var inp=document.getElementById('week-notes-'+wi);
+  if(!inp) return;
+  if(state.history[wi]) state.history[wi].weekNotes=inp.value.trim();
+  save();
+  // Visual confirm
+  inp.style.borderColor='var(--green)';
+  setTimeout(function(){if(inp)inp.style.borderColor='';},1500);
+}
+function generateShopping(){
+  state.view='shopping-loading';render();
+  var days=(state.plan&&state.plan.days)||[];
+  var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
+  var mealList=[];
+  days.forEach(function(day){mealOrder.forEach(function(type){if(day[type]&&day[type].name)mealList.push(day[type].name);});});
+  var householdSize=Math.max(getServings('dinner'),getServings('breakfast'),getServings('lunch')||0);
+  var store=state.activeStore||(state.profile.stores&&state.profile.stores[0])||'';
+  var location=state.profile.location||'US';
+  var prompt='Generate a consolidated grocery shopping list for these meals:\n'+mealList.join(', ')+'\n\nHousehold size: ~'+householdSize+' people\n'+(store?'Store: '+store+' in '+location+'\n':'Location: '+location+'\n')+'\nFORMAT: "Item name — specific descriptor (quantity unit) — $X.XX · Meal type"\nExample: "Chicken breast — boneless, skinless (2 lbs) — $8.99 · Dinner"\nALWAYS include a specific descriptor so similar items are never confused.\n\nQUANTITY CAPS:\n- chicken breast ≤ 3 lbs, eggs ≤ 2 dozen, ground beef ≤ 2 lbs, fish ≤ 2 lbs\n- yogurt ≤ 32 oz, milk ≤ 1 gallon, cheese ≤ 1 lb\n- rice ≤ 1 lb, pasta ≤ 1 lb, oats ≤ 1 lb, protein powder ≤ 1 lb\n\nPRICING: Round DOWN. Use lower end of store price ranges.\n\nCATEGORIES (strict):\n- Produce: fresh fruits/vegetables/herbs only\n- Proteins: raw meat, poultry, fish, tofu, deli meats\n- Dairy & Eggs: milk, cheese, butter, cream, yogurt, eggs\n- Pantry & Grains: dry/canned goods, grains, oils, condiments\n- Frozen: anything from the frozen aisle\n- Other: anything else\n\nSEPARATE "YouLikelyHave" array: cooking oils, common spices, protein powder, supplements, coffee, tea, flour, sugar, baking essentials. List as simple names, no price/format.\n\nReply ONLY with raw JSON:\n{"Produce":["..."],"Proteins":["..."],"Dairy & Eggs":["..."],"Pantry & Grains":["..."],"Frozen":["..."],"Other":["..."],"YouLikelyHave":["..."]}';
+  callAPI(prompt,2500,function(shopping){var likelyItems=shopping['YouLikelyHave']||[];delete shopping['YouLikelyHave'];var cleaned={};Object.keys(shopping).forEach(function(k){if(shopping[k]&&shopping[k].length)cleaned[k]=shopping[k];});var activeStaples=(state.profile.staples||[]).filter(function(s){return s.active;}).map(function(s){return s.name;});activeStaples.forEach(function(s){if(likelyItems.indexOf(s)===-1)likelyItems.push(s);});state.shopping=cleaned;state.shoppingLikely=likelyItems;state.checkedItems={};state.shoppingCosts={};state.view='shopping';render();parseInlineCosts(cleaned);},function(e){state.view='plan';state.error='Could not build shopping list: '+e;render();});}
+
+function parseInlineCosts(shopping){
+  var rawCosts={};
+  var itemCategories={};
+  Object.keys(shopping).forEach(function(cat){
+    (shopping[cat]||[]).forEach(function(item){
+      var match=item.match(/\$(\d+(?:\.\d{1,2})?)/);
+      if(match){rawCosts[item]=parseFloat(match[1]);itemCategories[item]=cat;}
+    });
+  });
+  state.shoppingBaseCosts=rawCosts;
+  state.shoppingItemCategories=itemCategories;
+  var costs={};
+  Object.keys(rawCosts).forEach(function(k){
+    var cat=itemCategories[k]||'';
+    var multiplier=getCostMultiplier(cat);
+    costs[k]=Math.round(rawCosts[k]*multiplier*100)/100;
+  });
+  state.shoppingCosts=costs;
+  // For display: compute blended multiplier for the total line
+  state.costMultiplier=getCostMultiplier('');
+  if(state.view==='shopping')render();
+}
+function reapplyCostMultiplier(){
+  if(!state.shoppingBaseCosts||!Object.keys(state.shoppingBaseCosts).length)return;
+  var itemCategories=state.shoppingItemCategories||{};
+  var costs={};
+  Object.keys(state.shoppingBaseCosts).forEach(function(k){
+    var cat=itemCategories[k]||'';
+    var multiplier=getCostMultiplier(cat);
+    costs[k]=Math.round(state.shoppingBaseCosts[k]*multiplier*100)/100;
+  });
+  state.shoppingCosts=costs;
+  state.costMultiplier=getCostMultiplier('');
+  if(state.view==='shopping')render();
+}
+function getAmazonFreshCategoryMultiplier(category){
+  // Per-category multipliers calibrated from real Mountain View Amazon Fresh invoice (March 2026)
+  // Proteins: beef $18.99/lb, chicken $3.97/lb family pack — weighted avg ~25-30% above AI estimates
+  // Produce: organic premium consistent ~20% above AI estimates
+  // Dairy: organic milk $6.19/half gal vs ~$4-5 AI estimate — ~15% above
+  // Pantry: pasta, beans, vinegar all within 5% of AI estimates
+  var map={
+    'Produce':1.20,
+    'Proteins':1.30,
+    'Dairy & Eggs':1.15,
+    'Pantry & Grains':1.05,
+    'Frozen':1.10,
+    'Other':1.10
+  };
+  return map[category]||1.10;
+}
+function getCostMultiplier(category){
+  var location=(state.profile.location||'').toLowerCase();
+  var store=(state.activeStore||(state.profile.stores&&state.profile.stores[0])||'').toLowerCase();
+  // Amazon Fresh: use per-category multipliers from real invoice data
+  if(store.indexOf('amazon fresh')!==-1||store.indexOf('amazon')!==-1){
+    var catMultiplier=category?getAmazonFreshCategoryMultiplier(category):1.15;
+    // Still apply location factor for non-Mountain View users
+    var locFactor=1.0;
+    var highCostAreas=['new york','nyc','san francisco','sf','los angeles','la','boston','seattle','chicago','washington dc','dc','miami','austin','denver','portland','san jose','oakland','brooklyn','mountain view','palo alto','menlo park','cupertino','sunnyvale','santa clara'];
+    highCostAreas.forEach(function(area){if(location.indexOf(area)!==-1)locFactor=1.0;}); // Mountain View already baked in
+    return catMultiplier*locFactor;
+  }
+  // Other stores: original flat multiplier logic
+  var highCostAreas=['new york','nyc','san francisco','sf','los angeles','la','boston','seattle','chicago','washington dc','dc','miami','austin','denver','portland','san jose','oakland','brooklyn','mountain view','palo alto','menlo park','cupertino','sunnyvale','santa clara'];
+  var locationMultiplier=1.0;
+  highCostAreas.forEach(function(area){if(location.indexOf(area)!==-1)locationMultiplier=1.10;});
+  var premiumStores=['whole foods','erewhon','sprouts','bristol farms','central market','fresh market','dean & deluca','market hall'];
+  var storeMultiplier=1.0;
+  premiumStores.forEach(function(s){if(store.indexOf(s)!==-1)storeMultiplier=1.20;});
+  return locationMultiplier*storeMultiplier;
+}
+
+render();
+</script>
+</body>
+</html>
