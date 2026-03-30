@@ -184,7 +184,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plate — Meal Planner v4.14</title>
+<title>Plate — Meal Planner v4.15</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -439,7 +439,14 @@ function buildNPCards(selectedId, onchangeFn) {
 
 // ── Setup ──
 function renderSetup(app) {
+  if(!state.apiKey) {
+    app.appendChild(div('api-banner','<strong>One-time setup:</strong> This app uses Claude AI. Get a free API key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Stored only in your browser.'));
+    app.appendChild(div('card fade-in','<div class="sec-label">API Key</div><div class="field"><label>Anthropic API Key</label><input type="password" id="apiKeyInput" placeholder="sk-ant-..." value="'+esc(state.apiKey)+'"></div><button class="btn btn-primary" onclick="saveKey()">Save &amp; continue</button>'));
+    return;
+  }
+
   var setupComplete = state.profile.setupComplete;
+
   if(!setupComplete) {
     renderFirstTimeSetup(app);
   } else {
@@ -1178,11 +1185,14 @@ function saveProfile(){
 function friendlyError(msg){if(!msg)return'Something went wrong. Please try again.';if(msg.indexOf('exceeded_limit')!==-1||msg.indexOf('rate')!==-1)return'API rate limit reached. Check console.anthropic.com.';if(msg.indexOf('invalid_api_key')!==-1||msg.indexOf('authentication')!==-1)return'Invalid API key. Please check your key in settings.';if(msg.indexOf('overloaded')!==-1)return'Claude is overloaded. Wait a moment and try again.';if(msg.charAt(0)==='{')return'API error. Please try again.';return msg.length>120?msg.slice(0,120)+'…':msg;}
 
 function callAPI(prompt,maxTokens,onSuccess,onError){
-  // Uses Netlify proxy function — API key is stored server-side in Netlify
-  // environment variables, never exposed in the browser.
-  fetch('/api/proxy',{
+  // Use Netlify proxy if available (production), fall back to direct call (local dev with API key)
+  var useProxy = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+  var url = useProxy ? '/.netlify/functions/proxy' : 'https://api.anthropic.com/v1/messages';
+  var headers = {'Content-Type':'application/json'};
+  if(!useProxy){ headers['x-api-key']=state.apiKey; headers['anthropic-version']='2023-06-01'; headers['anthropic-dangerous-allow-browser']='true'; }
+  fetch(url,{
     method:'POST',
-    headers:{'Content-Type':'application/json'},
+    headers:headers,
     body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
   }).then(function(r){return r.json();}).then(function(data){
     if(data.error)throw new Error(JSON.stringify(data.error));
