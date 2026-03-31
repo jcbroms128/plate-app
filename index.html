@@ -664,10 +664,25 @@ function renderReturningSetup(app) {
     app.appendChild(div('card fade-in', volHtml));
   }
 
+  // Servings per meal type
+  var servHtml='<div class="sec-label">Servings this week</div>';
+  var mealTypesList=[...state.mealTypes];
+  mealTypesList.forEach(function(type){
+    var sv=getServings(type);
+    servHtml+='<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">'
+      +'<span style="font-size:13px;color:var(--ink);text-transform:capitalize;">'+type+'</span>'
+      +'<div style="display:flex;align-items:center;gap:12px;">'
+      +'<button onclick="changeWeekServing(\''+type+'\',-1)" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;" '+(sv<=1?'disabled':'')+'>&minus;</button>'
+      +'<span style="font-size:15px;font-weight:500;min-width:24px;text-align:center;">'+sv+'</span>'
+      +'<button onclick="changeWeekServing(\''+type+'\',1)" style="background:none;border:1px solid var(--border-med);border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;color:var(--ink-light);display:flex;align-items:center;justify-content:center;">&plus;</button>'
+      +'<span style="font-size:12px;color:var(--ink-faint);">people</span>'
+      +'</div></div>';
+  });
+  app.appendChild(div('card fade-in', servHtml));
+
   app.appendChild(div('card fade-in','<button class="btn btn-accent btn-full" onclick="generatePlan()">Generate my meal plan →</button>'));
 }
 
-// ── Profile (full settings) ──
 function renderProfile(app) {
   var p = state.profile;
   app.appendChild(div('fade-in',
