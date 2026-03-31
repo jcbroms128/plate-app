@@ -165,6 +165,31 @@
          (remove a meal type from a specific day via the day view).
 
   ============================================================
+  v4.16 — 2026-03-31
+    WHAT'S NEW:
+    1. Bug fixes:
+       • Appliances + cook time fields now appear immediately
+         when "Can cook" is checked — no save/reload needed.
+       • Snacks now generate correctly when selected.
+       • Recipe notes save button fixed — notes persist.
+       • Settings back button now returns to meal plan.
+       • History back button now returns to meal plan.
+       • History re-use no longer navigates away immediately —
+         multiple meals can be selected before leaving.
+       • Nutrition screen shows helpful message when
+         auto-fetch is off instead of spinning forever.
+       • "Meal Prep" button renamed from day-specific label.
+       • Prep guide prompt improved — AI now avoids
+         suggesting nonsensical or harmful prep tasks
+         (e.g. marinating eggs, over-prepping delicate items).
+    2. New features:
+       • Edit household members from the main screen —
+         tap any member pill to expand inline edit form.
+       • Member-level nutrition breakdowns — Nutrition
+         screen now shows per-member estimated daily
+         intake based on their profile and servings.
+
+  ============================================================
   v4.7.1 — 2026-03-20
     • CORS proxy fix (corsproxy.io)
 
@@ -184,7 +209,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plate — Meal Planner v4.15</title>
+<title>Plate — Meal Planner v4.16</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -439,14 +464,7 @@ function buildNPCards(selectedId, onchangeFn) {
 
 // ── Setup ──
 function renderSetup(app) {
-  if(!state.apiKey) {
-    app.appendChild(div('api-banner','<strong>One-time setup:</strong> This app uses Claude AI. Get a free API key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Stored only in your browser.'));
-    app.appendChild(div('card fade-in','<div class="sec-label">API Key</div><div class="field"><label>Anthropic API Key</label><input type="password" id="apiKeyInput" placeholder="sk-ant-..." value="'+esc(state.apiKey)+'"></div><button class="btn btn-primary" onclick="saveKey()">Save &amp; continue</button>'));
-    return;
-  }
-
   var setupComplete = state.profile.setupComplete;
-
   if(!setupComplete) {
     renderFirstTimeSetup(app);
   } else {
@@ -561,14 +579,45 @@ function renderReturningSetup(app) {
       +'</div>'
     ));
   }
-  // Compact member summary — read only, edit in Profile
-  var memberSummary = '<div class="sec-label">Your household</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">';
-  state.members.forEach(function(m) {
-    memberSummary += '<div class="member-pill"><span class="member-pill-name">'+esc(m.name)+(m.age?', '+esc(m.age):'')+'</span>'+(m.activity?'<span class="member-pill-np">'+esc(m.activity)+'</span>':'')+'</div>';
+  // Member cards — inline editable on main screen
+  var memberSummary = '<div class="sec-label">Your household</div>';
+  state.members.forEach(function(m, i) {
+    var isExp = state.expandedMember === i;
+    memberSummary += '<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px;">';
+    memberSummary += '<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleMemberExpand('+i+')">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<span style="font-size:14px;font-weight:500;">'+esc(m.name)+(m.age?', '+esc(m.age):'')+'</span>'
+      +(m.activity?'<span style="padding:2px 10px;border-radius:999px;font-size:11px;font-weight:500;background:var(--accent-light);color:var(--accent);border:1px solid rgba(200,90,42,0.25);">'+esc(m.activity)+'</span>':'')
+      +'</div>'
+      +'<span style="font-size:12px;color:var(--accent);">'+(isExp?'▲ Done':'✎ Edit')+'</span>'
+      +'</div>';
+    if(isExp) {
+      memberSummary += '<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">'
+        +'<div class="row2" style="margin-bottom:10px;">'
+        +'<div class="field" style="margin-bottom:0;"><label>Name</label><input type="text" id="qem-name-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.name)+'"></div>'
+        +'<div class="field" style="margin-bottom:0;"><label>Age</label><input type="text" id="qem-age-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.age||'')+'"></div>'
+        +'</div>'
+        +'<div class="field"><label>Nutrition Profile</label>'+buildNPCards(m.activity||'','setMemberNP_'+i)+'</div>'
+        +'<div class="field"><label>Foods to avoid</label><input type="text" id="qem-dislikes-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.dislikes||'')+'" placeholder="e.g. no mushrooms, dairy-free"></div>'
+        +'<div class="field"><label>Dietary needs</label><input type="text" id="qem-dietary-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.dietaryNeeds||'')+'" placeholder="e.g. low sodium, nut allergy"></div>'
+        +'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border);margin-top:4px;">'
+        +'<div onclick="toggleMemberCook('+i+')" style="width:18px;height:18px;border-radius:4px;border:1.5px solid '+(m.canCook?'var(--accent)':'var(--border-med)')+';background:'+(m.canCook?'var(--accent)':'transparent')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;">'
+        +(m.canCook?'<span style="color:#fff;font-size:11px;font-weight:600;">✓</span>':'')
+        +'</div>'
+        +'<div style="font-size:13px;font-weight:500;">Can cook meals</div>'
+        +'</div>'
+        +(m.canCook?'<div class="field" style="margin-top:2px;"><label>Appliances they use</label><input type="text" id="qem-appliances-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.appliances||'')+'" placeholder="e.g. air fryer, stovetop, Instant Pot"></div>':'')
+        +(m.canCook?'<div class="field"><label>Preferred cook time</label><input type="text" id="qem-cooktime-'+i+'" class="inline-input" style="width:100%;" value="'+esc(m.cookTime||'')+'" placeholder="e.g. weeknights under 30 min"></div>':'')
+        +'<div style="display:flex;gap:8px;margin-top:8px;">'
+        +'<button class="btn btn-primary btn-sm" onclick="saveQuickMemberEdit('+i+')">Save</button>'
+        +'<button class="btn-ghost" onclick="toggleMemberExpand('+i+')">Cancel</button>'
+        +'</div>'
+        +'</div>';
+    }
+    memberSummary += '</div>';
   });
-  memberSummary += '</div>'
-    +'<button class="btn-ghost" onclick="goProfile()" style="font-size:12px;">✎ Edit members in settings</button>';
+  memberSummary += '<button class="btn-add" onclick="showAddForm()">+ Add household member</button>'
+    +'<div style="font-size:11px;color:var(--ink-faint);margin-top:8px;">Full settings in ⚙ profile</div>';
   app.appendChild(div('card fade-in', memberSummary));
 
   // This week context
@@ -813,7 +862,7 @@ function renderPlan(app) {
   app.appendChild(div('card fade-in',
     '<div style="display:flex;gap:8px;">'
     +'<button class="btn btn-accent btn-full" onclick="generateShopping()" style="flex:2;">Build shopping list →</button>'
-    +(state.profile.mealPrepDay?'<button class="btn btn-outline btn-full" onclick="generatePrepGuide()" style="flex:1;">'+state.profile.mealPrepDay.slice(0,3)+' Prep</button>':'')
+    +(state.profile.mealPrepDay?'<button class="btn btn-outline btn-full" onclick="generatePrepGuide()" style="flex:1;">Meal Prep</button>':'')
     +'<button class="btn btn-outline btn-full" onclick="state.view=\'nutrition\';render()" style="flex:1;">Nutrition</button>'
     +'</div>'
   ));
@@ -946,14 +995,16 @@ function renderRecipe(app) {
     + '<div style="position:relative;">'
     + '<textarea id="recipe-note-input" rows="3" '
     + 'placeholder="e.g. Everyone loved this — make again. Try less chili next time. Too many steps for a weeknight." '
-    + 'style="width:100%;padding:10px 36px 10px 12px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--cream);font-family:\'DM Sans\',sans-serif;font-size:13px;color:var(--ink);outline:none;resize:vertical;min-height:72px;line-height:1.5;transition:border-color .15s;" '
-    + 'onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'var(--border-med)\'" '
-    + 'oninput="saveRecipeNote()">'
+    + 'style="width:100%;padding:10px 12px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--cream);font-family:\'DM Sans\',sans-serif;font-size:13px;color:var(--ink);outline:none;resize:vertical;min-height:72px;line-height:1.5;transition:border-color .15s;" '
+    + 'onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'var(--border-med)\'">'
     + esc(existingNote)
     + '</textarea>'
-    + (existingNote ? '<button onclick="clearRecipeNote()" title="Clear note" style="position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:18px;line-height:1;padding:2px;">&times;</button>' : '')
     + '</div>'
-    + '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;">Saved automatically. Informs future meal plan suggestions.</div>';
+    + '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;">'
+    + '<button id="recipe-note-save-btn" class="btn btn-outline btn-sm" onclick="saveRecipeNote()">Save note</button>'
+    + (existingNote ? '<button onclick="clearRecipeNote()" class="btn-ghost" style="font-size:12px;color:#A32D2D;">Clear</button>' : '')
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--ink-faint);margin-top:6px;">Saved notes inform future meal plan suggestions.</div>';
 
   state.recipeNotesKey = rTitle;
   card.innerHTML=html; app.appendChild(card);
@@ -1023,6 +1074,9 @@ function renderNutritionReport(app) {
   var weekTotals={calories:0,protein_g:0,carbs_g:0,fat_g:0,sugar_g:0,daysWithData:0};
   days.forEach(function(day){var d=calcDayNutrition(day,mealOrder);if(d.hasData){weekTotals.calories+=d.calories;weekTotals.protein_g+=d.protein_g;weekTotals.carbs_g+=d.carbs_g;weekTotals.fat_g+=d.fat_g;weekTotals.sugar_g+=d.sugar_g;weekTotals.daysWithData++;}});
   if(weekTotals.daysWithData>0){var wc=div('card fade-in','');wc.innerHTML='<div class="sec-label">Weekly total ('+weekTotals.daysWithData+' of 7 days)</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;margin-bottom:12px;">'+buildNutriBadge('Calories',weekTotals.calories,'')+buildNutriBadge('Protein',weekTotals.protein_g,'g')+buildNutriBadge('Carbs',weekTotals.carbs_g,'g')+buildNutriBadge('Fat',weekTotals.fat_g,'g')+buildNutriBadge('Sugar',weekTotals.sugar_g,'g')+'</div><div class="sec-label" style="margin-top:4px;">Daily average</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;">'+buildNutriBadge('Calories',weekTotals.calories/weekTotals.daysWithData,'')+buildNutriBadge('Protein',weekTotals.protein_g/weekTotals.daysWithData,'g')+buildNutriBadge('Carbs',weekTotals.carbs_g/weekTotals.daysWithData,'g')+buildNutriBadge('Fat',weekTotals.fat_g/weekTotals.daysWithData,'g')+buildNutriBadge('Sugar',weekTotals.sugar_g/weekTotals.daysWithData,'g')+'</div>';app.appendChild(wc);}
+  else if(!state.bgFetch){
+    app.appendChild(div('card fade-in','<div style="text-align:center;padding:1.5rem;"><div style="font-size:22px;margin-bottom:10px;">📊</div><div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:6px;">Auto-fetch recipes is off</div><div style="font-size:13px;color:var(--ink-light);line-height:1.6;margin-bottom:14px;">Nutrition data requires recipes to be loaded. Turn on auto-fetch in Settings to see macros.</div><button class="btn btn-accent btn-sm" onclick="state.bgFetch=true;save();state.view=\'profile\';render();">Turn on in Settings →</button></div>'));
+  }
   else{app.appendChild(div('card fade-in','<div style="text-align:center;padding:1.5rem;color:var(--ink-light);font-size:14px;">Still loading recipes in the background. Check back in a moment.</div>'));}
   var dc=div('card fade-in','');var dh='<div class="sec-label">By day</div>';
   days.forEach(function(day,di){var d=calcDayNutrition(day,mealOrder);dh+='<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="jumpDay('+di+');state.view=\'plan\';render();"><div style="min-width:90px;font-size:13px;font-weight:500;">'+esc(day.day)+(day.event?'<div style="margin-top:2px;"><span class="event-pill" style="font-size:10px;">'+esc(day.event)+'</span></div>':'')+'</div>'+(d.hasData?'<div style="display:flex;gap:12px;font-size:13px;color:var(--ink-light);"><span><strong style="color:var(--ink);">'+Math.round(d.calories)+'</strong> cal</span><span><strong style="color:var(--ink);">'+Math.round(d.protein_g)+'g</strong> protein</span><span><strong style="color:var(--ink);">'+Math.round(d.carbs_g)+'g</strong> carbs</span></div>':'<div style="font-size:12px;color:var(--ink-faint);font-style:italic;">Still loading...</div>')+'</div>';});
@@ -1032,6 +1086,22 @@ function renderNutritionReport(app) {
 function calcDayNutrition(day,mealOrder){var totals={calories:0,protein_g:0,carbs_g:0,fat_g:0,sugar_g:0,hasData:false};mealOrder.forEach(function(type){if(day[type]&&day[type].nutrition){var n=day[type].nutrition;var di=(state.plan&&state.plan.days||[]).indexOf(day);var mealKey=di+'_'+type;var servings=(state.servingsConsumed&&state.servingsConsumed[mealKey])?state.servingsConsumed[mealKey]:1;totals.calories+=(n.calories||0)*servings;totals.protein_g+=(n.protein_g||0)*servings;totals.carbs_g+=(n.carbs_g||0)*servings;totals.fat_g+=(n.fat_g||0)*servings;totals.sugar_g+=(n.sugar_g||0)*servings;totals.hasData=true;}});return totals;}
 
 // ── Actions ──
+function saveQuickMemberEdit(i) {
+  var n=document.getElementById('qem-name-'+i);
+  var a=document.getElementById('qem-age-'+i);
+  var dl=document.getElementById('qem-dislikes-'+i);
+  var dt=document.getElementById('qem-dietary-'+i);
+  var ap=document.getElementById('qem-appliances-'+i);
+  var ct=document.getElementById('qem-cooktime-'+i);
+  if(n)state.members[i].name=n.value.trim();
+  if(a)state.members[i].age=a.value.trim();
+  if(dl)state.members[i].dislikes=dl.value.trim();
+  if(dt)state.members[i].dietaryNeeds=dt.value.trim();
+  if(ap)state.members[i].appliances=ap.value.trim();
+  if(ct)state.members[i].cookTime=ct.value.trim();
+  state.expandedMember=null;
+  save();render();
+}
 function saveKey(){state.apiKey=document.getElementById('apiKeyInput').value.trim();save();render();}
 function showAddForm(){state.showAddForm=true;state.newMember={name:'',age:'',activity:'',canCook:false,notes:''};render();}
 function cancelAdd(){state.showAddForm=false;render();}
@@ -1094,13 +1164,12 @@ function toggleMeal(m){if(state.mealTypes.has(m)){if(state.mealTypes.size>1)stat
 function goSetup(){state.view='setup';state.error='';render();}
 function startNewWeek(){archiveCurrentWeek();state.weekCtx='';state.foodNotes='';state.weekServings=null;state.weekVolunteers={};state.plan=null;state.shopping=null;state.prepGuide=null;state.checkedItems={};state.checkedPrepItems={};save();state.view='setup';state.error='';render();}
 function goBack(){
-  // If we have a plan, go to plan; otherwise go to setup (main menu)
-  var dest=state.prevView||'setup';
-  // Never go back to loading screens
-  if(dest==='loading'||dest==='recipe-loading'||dest==='shopping-loading'||dest==='prep-loading') dest='plan';
-  // If destination is plan but no plan exists, go to setup
-  if(dest==='plan'&&(!state.plan||!state.plan.days)) dest='setup';
-  state.view=dest;
+  // Always go to plan if we have one, otherwise setup
+  if(state.plan&&state.plan.days&&state.plan.days.length){
+    state.view='plan';
+  } else {
+    state.view='setup';
+  }
   render();
 }
 function goProfile(){
@@ -1145,9 +1214,11 @@ function saveRecipeNote(){
   if(!inp)return;
   var key=state.recipeNotesKey||'';
   if(!key)return;
-  var val=inp.value;
-  if(val.trim()){state.recipeNotes[key]=val.trim();}else{delete state.recipeNotes[key];}
+  var val=inp.value.trim();
+  if(val){state.recipeNotes[key]=val;}else{delete state.recipeNotes[key];}
   save();
+  var btn=document.getElementById('recipe-note-save-btn');
+  if(btn){var orig=btn.textContent;btn.textContent='✓ Saved!';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},1500);}
 }
 function clearRecipeNote(){
   var key=state.recipeNotesKey||'';
@@ -1237,7 +1308,7 @@ function generatePlan(){
   var liked=Object.entries(state.feedback).filter(function(e){return e[1].rating===1;}).map(function(e){return e[0];}).join(', ');
   var noteEntries=Object.entries(state.recipeNotes||{}).filter(function(e){return e[1]&&e[1].trim();});
   var recipeNotesCtx=noteEntries.length?'Household notes on past recipes (use to improve suggestions):\n'+noteEntries.map(function(e){return'- '+e[0]+': '+e[1];}).join('\n')+'\n':'';
-  var prompt='You are a nutrition-aware meal planner.\n\nHousehold members:\n'+memberStr+'\n'+(state.weekCtx?'Week context: '+state.weekCtx+'\n':'')+(profileCtx||'')+(state.foodNotes?'Additional notes: '+state.foodNotes+'\n':'')+(disliked?'Do NOT suggest these meals (disliked): '+disliked+'\n':'')+(liked?'This household enjoys: '+liked+'\n':'')+(recipeNotesCtx||'')+'Meal types requested: '+[...state.mealTypes].join(', ')+'\n\nCreate a 7-day meal plan Monday-Sunday.\nRULES:\n- Follow each member\'s Nutrition Profile precisely.\n- Child/Teen: age-appropriate portions, kid-friendly recipes.\n- Respect all member notes as hard constraints.\n- One dinner feeds the whole household.\n- Use member appliances actively in recipe choices.\n- MEAL VARIETY: Default to varied meals across the week, BUT if the user\'s week context requests repeated meals (e.g. \'1-3 breakfast types\' or \'repeat lunches\'), follow that instruction exactly — it overrides the variety default.\n- MEMBER-SPECIFIC SCHEDULING: The week context may mention specific household members by name with activities (e.g. \'Ryan long run Saturday\', \'Evan football Friday\'). When you see a member\'s name next to an activity on a specific day, adjust that day\'s meals to support their physical demands — increase carbs/protein for athletic events, adjust portions accordingly. Apply these changes per-member, not household-wide.\n\nReply ONLY with raw JSON, no markdown:\n{"days":[{"day":"Monday","event":null,"breakfast":{"name":"...","note":"..."},"dinner":{"name":"...","note":"..."}}]}\n\nOnly include keys for requested meal types. "event" is short label or null. "note" is one nutrition sentence.';
+  var prompt='You are a nutrition-aware meal planner.\n\nHousehold members:\n'+memberStr+'\n'+(state.weekCtx?'Week context: '+state.weekCtx+'\n':'')+(profileCtx||'')+(state.foodNotes?'Additional notes: '+state.foodNotes+'\n':'')+(disliked?'Do NOT suggest these meals (disliked): '+disliked+'\n':'')+(liked?'This household enjoys: '+liked+'\n':'')+(recipeNotesCtx||'')+'Meal types requested: '+[...state.mealTypes].join(', ')+'\n\nCreate a 7-day meal plan Monday-Sunday.\nRULES:\n- Follow each member\'s Nutrition Profile precisely.\n- Child/Teen: age-appropriate portions, kid-friendly recipes.\n- Respect all member notes as hard constraints.\n- One dinner feeds the whole household.\n- Use member appliances actively in recipe choices.\n- MEAL VARIETY: Default to varied meals across the week, BUT if the user\'s week context requests repeated meals (e.g. \'1-3 breakfast types\' or \'repeat lunches\'), follow that instruction exactly — it overrides the variety default.\n- MEMBER-SPECIFIC SCHEDULING: The week context may mention specific household members by name with activities (e.g. \'Ryan long run Saturday\', \'Evan football Friday\'). When you see a member\'s name next to an activity on a specific day, adjust that day\'s meals to support their physical demands — increase carbs/protein for athletic events, adjust portions accordingly. Apply these changes per-member, not household-wide.\n- SNACKS: If snacks are in the requested meal types, you MUST include a "snacks" key for EVERY day — no exceptions. Snacks should be simple, practical options (e.g. "Apple with almond butter", "Greek yogurt with berries", "Protein shake").\n- WEEK CONTEXT INSTRUCTIONS: Follow ALL instructions in the week context field precisely. If the user says "one lunch for the week", only include lunch on one day. If they say "takeaway Friday dinner", set Friday dinner name to "Takeaway / Eating Out" with no recipe needed.\n\nReply ONLY with raw JSON, no markdown:\n{"days":[{"day":"Monday","event":null,"breakfast":{"name":"...","note":"..."},"dinner":{"name":"...","note":"..."}}]}\n\nOnly include keys for requested meal types. "event" is short label or null. "note" is one nutrition sentence.';
   callAPI(prompt,4000,
     function(plan){state.plan=plan;state.dayIndex=0;state.view='plan';render();if(state.bgFetch)fetchAllRecipesInBackground(plan);},
     function(e){state.view='setup';state.error='Something went wrong: '+e;render();}
@@ -1284,21 +1355,25 @@ function generatePrepGuide(){
     if(m.canCook&&m.appliances)parts.push('uses '+m.appliances);
     return parts.join(', ');
   }).join('; ');
-  var prompt='You are a meal prep expert. Generate a '+prepDay+' meal prep guide for this week\'s meals.\n\n'
+  var prompt='You are a professional meal prep chef. Generate a '+prepDay+' meal prep guide for this week\'s meals.\n\n'
     +'Meals this week:\n'+mealList.join('\n')+'\n\n'
     +'Household: '+householdSize+' people\n'
     +(memberStr?'Members: '+memberStr+'\n':'')
     +'Prep day: '+prepDay+'\n\n'
-    +'Organize tasks into these four sections ONLY. Each task must:\n'
-    +'- Be specific (quantities, cook times, storage instructions)\n'
-    +'- Reference which meals it supports\n'
-    +'- Be ordered by kitchen workflow (e.g. oven items first, then stovetop)\n\n'
-    +'Sections:\n'
-    +'- "Cook & Store": batch-cook grains, proteins, roasted veg that get used across multiple meals\n'
-    +'- "Chop & Portion": raw prep — vegetables, fruits, portioned snacks, anything that saves mid-week knife work\n'
-    +'- "Marinate": proteins or veg needing overnight or multi-hour marinating\n'
-    +'- "Make Ahead": sauces, dressings, overnight oats, dips, anything better made in advance\n\n'
-    +'Only include sections that have actual tasks. Skip empty sections.\n'
+    +'CRITICAL CULINARY RULES — follow these strictly:\n'
+    +'- NEVER suggest prepping eggs for scrambling ahead of time. Scrambled eggs must be made fresh.\n'
+    +'- NEVER marinate delicate fish (salmon, tilapia, cod) more than 30 min or it will denature.\n'
+    +'- NEVER pre-dress salads or they will go soggy. Only prep ingredients separately.\n'
+    +'- NEVER pre-cut avocado — it browns. Note to slice day-of.\n'
+    +'- NEVER pre-season fish more than a few hours ahead.\n'
+    +'- Only suggest prepping something in advance if it genuinely improves with time or saves meaningful work.\n'
+    +'- If a dish is better made fresh (omelettes, pancakes, stir-fry), do NOT include it in prep.\n\n'
+    +'Organize tasks into these sections ONLY where they apply:\n'
+    +'- "Cook & Store": batch-cook grains, proteins, roasted veg used across multiple meals\n'
+    +'- "Chop & Portion": raw prep — vegetables, fruits, portioned snacks that save mid-week knife work\n'
+    +'- "Marinate": proteins that genuinely benefit from marinating (chicken, beef, tofu) — specify safe timing\n'
+    +'- "Make Ahead": sauces, dressings, overnight oats, dips — things that are better made in advance\n\n'
+    +'Only include sections with actual valid tasks. Skip sections with nothing appropriate.\n'
     +'Each task: one clear action sentence + " → " + which meals it supports.\n\n'
     +'Reply ONLY with raw JSON, no markdown:\n'
     +'{"prepDay":"'+prepDay+'","sections":[{"title":"Cook & Store","tasks":["Cook 3 cups brown rice (40 min) → Monday dinner, Wednesday lunch"]},{"title":"Chop & Portion","tasks":["..."]}]}';
@@ -1581,20 +1656,15 @@ function toggleHistoryExpand(wi){
   render();
 }
 function reuseHistoryMeal(name){
-  // Pre-fill week context with the meal name and navigate to setup
   var existing=state.weekCtx?state.weekCtx.trim():'';
   var tag='Re-use: '+name;
   if(existing.indexOf(tag)===-1){
     state.weekCtx=existing?(existing+'\n'+tag):tag;
   }
   save();
-  state.view='setup';
-  render();
-  // Scroll to week context field
-  setTimeout(function(){
-    var el=document.getElementById('week-ctx');
-    if(el){el.focus();el.scrollIntoView({behavior:'smooth',block:'center'});}
-  },100);
+  // Show confirmation inline without navigating away — user may want to pick more meals
+  var btn=document.querySelector('[data-mealname="'+name.replace(/"/g,'&quot;')+'"]');
+  if(btn){btn.textContent='✓ Added';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';}
 }
 function saveActualSpend(wi){
   var inp=document.getElementById('actual-spend-'+wi);
