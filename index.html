@@ -165,6 +165,26 @@
          (remove a meal type from a specific day via the day view).
 
   ============================================================
+  v4.17 — 2026-03-31
+    WHAT'S NEW:
+    1. Bug fixes:
+       • Snack meal name now displays correctly on plan cards.
+         Root cause: AI prompt example JSON only showed breakfast
+         and dinner — snacks key was missing from the template
+         the AI uses to format its response. Fixed by adding
+         snacks to the example JSON.
+       • Snack recipe now correctly generates a snack (not a
+         dinner). Recipe fetch prompt now includes meal type
+         context so AI knows what kind of recipe to write.
+       • Week notes "Save note" button now shows "✓ Saved!"
+         confirmation — previously saved silently with no
+         feedback.
+       • Nutrition screen: added "↻ Refresh" button so you
+         can manually pull in recipes that have finished
+         loading in the background, rather than waiting for
+         the screen to auto-update.
+
+  ============================================================
   v4.16 — 2026-03-31
     WHAT'S NEW:
     1. Bug fixes:
@@ -209,7 +229,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plate — Meal Planner v4.16</title>
+<title>Plate — Meal Planner v4.17</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1084,7 +1104,7 @@ function renderShopping(app) {
 function renderNutritionReport(app) {
   var days=(state.plan&&state.plan.days)||[];
   var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
-  app.appendChild(div('fade-in','<div class="week-header"><button class="btn btn-outline btn-sm" onclick="state.view=\'plan\';render()">← Back to plan</button><div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;">Nutrition</div><div></div></div>'));
+  app.appendChild(div('fade-in','<div class="week-header"><button class="btn btn-outline btn-sm" onclick="state.view=\'plan\';render()">← Back to plan</button><div style="font-family:\'Fraunces\',serif;font-size:20px;font-weight:300;">Nutrition</div><button class="btn btn-outline btn-sm" onclick="render()" title="Refresh nutrition data">↻ Refresh</button></div>'));
   app.appendChild(div('','<div style="background:#FBF3DC;border:1px solid rgba(184,134,11,0.25);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--ink-light);margin-bottom:14px;">Estimates based on standard portions. Recipes load in the background — check back in a moment if data is missing.</div>'));
   var weekTotals={calories:0,protein_g:0,carbs_g:0,fat_g:0,sugar_g:0,daysWithData:0};
   days.forEach(function(day){var d=calcDayNutrition(day,mealOrder);if(d.hasData){weekTotals.calories+=d.calories;weekTotals.protein_g+=d.protein_g;weekTotals.carbs_g+=d.carbs_g;weekTotals.fat_g+=d.fat_g;weekTotals.sugar_g+=d.sugar_g;weekTotals.daysWithData++;}});
@@ -1323,7 +1343,7 @@ function generatePlan(){
   var liked=Object.entries(state.feedback).filter(function(e){return e[1].rating===1;}).map(function(e){return e[0];}).join(', ');
   var noteEntries=Object.entries(state.recipeNotes||{}).filter(function(e){return e[1]&&e[1].trim();});
   var recipeNotesCtx=noteEntries.length?'Household notes on past recipes (use to improve suggestions):\n'+noteEntries.map(function(e){return'- '+e[0]+': '+e[1];}).join('\n')+'\n':'';
-  var prompt='You are a nutrition-aware meal planner.\n\nHousehold members:\n'+memberStr+'\n'+(state.weekCtx?'Week context: '+state.weekCtx+'\n':'')+(profileCtx||'')+(state.foodNotes?'Additional notes: '+state.foodNotes+'\n':'')+(disliked?'Do NOT suggest these meals (disliked): '+disliked+'\n':'')+(liked?'This household enjoys: '+liked+'\n':'')+(recipeNotesCtx||'')+'Meal types requested: '+[...state.mealTypes].join(', ')+'\n\nCreate a 7-day meal plan Monday-Sunday.\nRULES:\n- Follow each member\'s Nutrition Profile precisely.\n- Child/Teen: age-appropriate portions, kid-friendly recipes.\n- Respect all member notes as hard constraints.\n- One dinner feeds the whole household.\n- Use member appliances actively in recipe choices.\n- MEAL VARIETY: Default to varied meals across the week, BUT if the user\'s week context requests repeated meals (e.g. \'1-3 breakfast types\' or \'repeat lunches\'), follow that instruction exactly — it overrides the variety default.\n- MEMBER-SPECIFIC SCHEDULING: The week context may mention specific household members by name with activities (e.g. \'Ryan long run Saturday\', \'Evan football Friday\'). When you see a member\'s name next to an activity on a specific day, adjust that day\'s meals to support their physical demands — increase carbs/protein for athletic events, adjust portions accordingly. Apply these changes per-member, not household-wide.\n- SNACKS: If snacks are in the requested meal types, you MUST include a "snacks" key for EVERY day — no exceptions. Snacks should be simple, practical options (e.g. "Apple with almond butter", "Greek yogurt with berries", "Protein shake").\n- WEEK CONTEXT INSTRUCTIONS: Follow ALL instructions in the week context field precisely. If the user says "one lunch for the week", only include lunch on one day. If they say "takeaway Friday dinner", set Friday dinner name to "Takeaway / Eating Out" with no recipe needed.\n\nReply ONLY with raw JSON, no markdown:\n{"days":[{"day":"Monday","event":null,"breakfast":{"name":"...","note":"..."},"dinner":{"name":"...","note":"..."}}]}\n\nOnly include keys for requested meal types. "event" is short label or null. "note" is one nutrition sentence.';
+  var prompt='You are a nutrition-aware meal planner.\n\nHousehold members:\n'+memberStr+'\n'+(state.weekCtx?'Week context: '+state.weekCtx+'\n':'')+(profileCtx||'')+(state.foodNotes?'Additional notes: '+state.foodNotes+'\n':'')+(disliked?'Do NOT suggest these meals (disliked): '+disliked+'\n':'')+(liked?'This household enjoys: '+liked+'\n':'')+(recipeNotesCtx||'')+'Meal types requested: '+[...state.mealTypes].join(', ')+'\n\nCreate a 7-day meal plan Monday-Sunday.\nRULES:\n- Follow each member\'s Nutrition Profile precisely.\n- Child/Teen: age-appropriate portions, kid-friendly recipes.\n- Respect all member notes as hard constraints.\n- One dinner feeds the whole household.\n- Use member appliances actively in recipe choices.\n- MEAL VARIETY: Default to varied meals across the week, BUT if the user\'s week context requests repeated meals (e.g. \'1-3 breakfast types\' or \'repeat lunches\'), follow that instruction exactly — it overrides the variety default.\n- MEMBER-SPECIFIC SCHEDULING: The week context may mention specific household members by name with activities (e.g. \'Ryan long run Saturday\', \'Evan football Friday\'). When you see a member\'s name next to an activity on a specific day, adjust that day\'s meals to support their physical demands — increase carbs/protein for athletic events, adjust portions accordingly. Apply these changes per-member, not household-wide.\n- SNACKS: If snacks are in the requested meal types, you MUST include a "snacks" key for EVERY day — no exceptions. Snacks should be simple, practical options (e.g. "Apple with almond butter", "Greek yogurt with berries", "Protein shake").\n- WEEK CONTEXT INSTRUCTIONS: Follow ALL instructions in the week context field precisely. If the user says "one lunch for the week", only include lunch on one day. If they say "takeaway Friday dinner", set Friday dinner name to "Takeaway / Eating Out" with no recipe needed.\n\nReply ONLY with raw JSON, no markdown:\n{"days":[{"day":"Monday","event":null,"breakfast":{"name":"...","note":"..."},"lunch":{"name":"...","note":"..."},"dinner":{"name":"...","note":"..."},"snacks":{"name":"...","note":"..."}}]}\n\nOnly include keys for requested meal types. "event" is short label or null. "note" is one nutrition sentence.';
   callAPI(prompt,4000,
     function(plan){state.plan=plan;state.dayIndex=0;state.view='plan';render();if(state.bgFetch)fetchAllRecipesInBackground(plan);},
     function(e){state.view='setup';state.error='Something went wrong: '+e;render();}
@@ -1343,12 +1363,12 @@ function fetchAllRecipesInBackground(plan){
   var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
   var queue=[];
   (plan.days||[]).forEach(function(day,di){mealOrder.forEach(function(type){if(day[type]&&day[type].name)queue.push({di:di,type:type,meal:day[type],day:day});});});
-  queue.forEach(function(item,idx){setTimeout(function(){if(item.meal.nutrition)return;var actCtx=buildRecipeContext(item.day,item.type);var prompt='Give a simple home-cook recipe for: '+item.meal.name+'\n'+(item.meal.note?'Nutrition note: '+item.meal.note+'\n':'')+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}';callAPI(prompt,1200,function(r){if(state.plan&&state.plan.days[item.di]&&state.plan.days[item.di][item.type]){state.plan.days[item.di][item.type].recipe=r;if(r.nutrition)state.plan.days[item.di][item.type].nutrition=r.nutrition;}if(state.view==='nutrition')render();},function(){});},idx*800);});
+  queue.forEach(function(item,idx){setTimeout(function(){if(item.meal.nutrition)return;var actCtx=buildRecipeContext(item.day,item.type);var mealTypeCtx=item.type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':item.type==='breakfast'?'Meal type: breakfast.\n':'Meal type: '+item.type+'.\n';var prompt='Give a simple home-cook recipe for: '+item.meal.name+'\n'+(item.meal.note?'Nutrition note: '+item.meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}';callAPI(prompt,1200,function(r){if(state.plan&&state.plan.days[item.di]&&state.plan.days[item.di][item.type]){state.plan.days[item.di][item.type].recipe=r;if(r.nutrition)state.plan.days[item.di][item.type].nutrition=r.nutrition;}if(state.view==='nutrition')render();},function(){});},idx*800);});
 }
 
 function swapMeal(di,type,rejected){state.swapping={di:di,type:type};state.editing=null;state.suggestion=null;render();var day=state.plan.days[di];var ms=state.members.map(function(m){return m.name+(m.age?' (age '+m.age+')':"")+(m.activity?': '+m.activity:"")+(m.notes?' — '+m.notes:'');}).join('; ');var rejStr=(rejected&&rejected.length)?'Do NOT suggest: '+rejected.join(', ')+'\n':'';var prompt='Suggest ONE alternative meal to replace "'+day[type].name+'" for '+type+' on '+day.day+'.\n'+(day.event?'This day: '+day.event+'\n':'')+(state.foodNotes?'Food preferences: '+state.foodNotes+'\n':'')+(ms?'Household: '+ms+'\n':'')+rejStr+'Make it clearly different.\nReply ONLY with raw JSON: {"name":"...","note":"..."}';callAPI(prompt,200,function(m){state.suggestion={di:di,type:type,meal:m};state.swapping=null;render();},function(e){state.error='Swap failed: '+e;state.swapping=null;render();});}
 
-function loadRecipe(di,type){var meal=state.plan.days[di][type];var day=state.plan.days[di];state.recipeDi=di;state.recipeType=type;if(meal.recipe){state.recipe=meal.recipe;state.view='recipe';render();return;}state.view='recipe-loading';render();var actCtx=buildRecipeContext(day,type);var prompt='Give a simple home-cook recipe for: '+meal.name+'\n'+(meal.note?'Nutrition note: '+meal.note+'\n':'')+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}\n\nNutrition values per serving.';callAPI(prompt,1200,function(r){meal.recipe=r;if(r.nutrition)meal.nutrition=r.nutrition;state.recipe=r;state.view='recipe';render();},function(e){state.view='plan';state.error='Could not load recipe: '+e;render();});}
+function loadRecipe(di,type){var meal=state.plan.days[di][type];var day=state.plan.days[di];state.recipeDi=di;state.recipeType=type;if(meal.recipe){state.recipe=meal.recipe;state.view='recipe';render();return;}state.view='recipe-loading';render();var actCtx=buildRecipeContext(day,type);var mealTypeCtx=type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':type==='breakfast'?'Meal type: breakfast.\n':'Meal type: '+type+'.\n';var prompt='Give a simple home-cook recipe for: '+meal.name+'\n'+(meal.note?'Nutrition note: '+meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}\n\nNutrition values per serving.';callAPI(prompt,1200,function(r){meal.recipe=r;if(r.nutrition)meal.nutrition=r.nutrition;state.recipe=r;state.view='recipe';render();},function(e){state.view='plan';state.error='Could not load recipe: '+e;render();});}
 
 
 // ── Prep Guide ──
@@ -1694,9 +1714,11 @@ function saveWeekNotes(wi){
   if(!inp) return;
   if(state.history[wi]) state.history[wi].weekNotes=inp.value.trim();
   save();
-  // Visual confirm
+  // Visual confirm on both input border and button
   inp.style.borderColor='var(--green)';
   setTimeout(function(){if(inp)inp.style.borderColor='';},1500);
+  var btn=document.querySelector('[onclick="saveWeekNotes('+wi+')"]');
+  if(btn){var orig=btn.textContent;btn.textContent='✓ Saved!';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';setTimeout(function(){btn.textContent=orig;btn.style.color='';btn.style.borderColor='';},1500);}
 }
 function generateShopping(){
   state.view='shopping-loading';render();
