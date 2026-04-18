@@ -5,6 +5,16 @@
   ============================================================
   VERSION HISTORY
   ============================================================
+  v4.18 — 2026-04-18
+    WHAT'S NEW:
+    1. Progressive Web App (PWA) support:
+       - App installs to iPhone/Android home screen via
+         Safari > Share > Add to Home Screen.
+       - Plate icon and branding on home screen.
+       - Launches full-screen, no browser chrome.
+       - Service worker for faster loads and offline resilience.
+
+  ============================================================
   v4.13 — 2026-03-25
     WHAT'S NEW:
     1. Plan persistence:
@@ -38,6 +48,16 @@
          (e.g. "Cook brown rice → Monday dinner + Wed lunch").
        • Checkable tasks, same pattern as shopping list.
        • Loading state and back-to-plan navigation.
+
+  ============================================================
+  v4.18 — 2026-04-18
+    WHAT'S NEW:
+    1. Progressive Web App (PWA) support:
+       - App installs to iPhone/Android home screen via
+         Safari > Share > Add to Home Screen.
+       - Plate icon and branding on home screen.
+       - Launches full-screen, no browser chrome.
+       - Service worker for faster loads and offline resilience.
 
   ============================================================
   v4.13 — 2026-03-25
@@ -229,7 +249,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plate — Meal Planner v4.17</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Plate">
+<meta name="theme-color" content="#C85A2A">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MCIgZmlsbD0iI0M4NUEyQSIvPgogIDxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjYyIiBmaWxsPSIjRjdGNEVGIi8+CiAgPHRleHQgeD0iOTYiIHk9IjExOCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iODAiIGZvbnQtd2VpZ2h0PSIzMDAiIGZvbnQtc3R5bGU9Iml0YWxpYyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0M4NUEyQSI+UDwvdGV4dD4KPC9zdmc+">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlBsYXRlIFx1MjAxNCBNZWFsIFBsYW5uZXIiLCAic2hvcnRfbmFtZSI6ICJQbGF0ZSIsICJkZXNjcmlwdGlvbiI6ICJBSS1wb3dlcmVkIGhvdXNlaG9sZCBtZWFsIHBsYW5uaW5nIiwgInN0YXJ0X3VybCI6ICIvIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNGN0Y0RUYiLCAidGhlbWVfY29sb3IiOiAiI0M4NUEyQSIsICJvcmllbnRhdGlvbiI6ICJwb3J0cmFpdCIsICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXhPVElpSUdobGFXZG9kRDBpTVRreUlpQjJhV1YzUW05NFBTSXdJREFnTVRreUlERTVNaUkrQ2lBZ1BISmxZM1FnZDJsa2RHZzlJakU1TWlJZ2FHVnBaMmgwUFNJeE9USWlJSEo0UFNJME1DSWdabWxzYkQwaUkwTTROVUV5UVNJdlBnb2dJRHhqYVhKamJHVWdZM2c5SWprMklpQmplVDBpT1RZaUlISTlJall5SWlCbWFXeHNQU0lqUmpkR05FVkdJaTgrQ2lBZ1BIUmxlSFFnZUQwaU9UWWlJSGs5SWpFeE9DSWdabTl1ZEMxbVlXMXBiSGs5SWtkbGIzSm5hV0VzYzJWeWFXWWlJR1p2Ym5RdGMybDZaVDBpT0RBaUlHWnZiblF0ZDJWcFoyaDBQU0l6TURBaUlHWnZiblF0YzNSNWJHVTlJbWwwWVd4cFl5SWdkR1Y0ZEMxaGJtTm9iM0k5SW0xcFpHUnNaU0lnWm1sc2JEMGlJME00TlVFeVFTSStVRHd2ZEdWNGRENEtQQzl6ZG1jKyIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9LCB7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSTFNVElpSUdobGFXZG9kRDBpTlRFeUlpQjJhV1YzUW05NFBTSXdJREFnTlRFeUlEVXhNaUkrQ2lBZ1BISmxZM1FnZDJsa2RHZzlJalV4TWlJZ2FHVnBaMmgwUFNJMU1USWlJSEo0UFNJeE1EQWlJR1pwYkd3OUlpTkRPRFZCTWtFaUx6NEtJQ0E4WTJseVkyeGxJR040UFNJeU5UWWlJR041UFNJeU5UWWlJSEk5SWpFMk5pSWdabWxzYkQwaUkwWTNSalJGUmlJdlBnb2dJRHgwWlhoMElIZzlJakkxTmlJZ2VUMGlNekU0SWlCbWIyNTBMV1poYldsc2VUMGlSMlZ2Y21kcFlTeHpaWEpwWmlJZ1ptOXVkQzF6YVhwbFBTSXlNVEFpSUdadmJuUXRkMlZwWjJoMFBTSXpNREFpSUdadmJuUXRjM1I1YkdVOUltbDBZV3hwWXlJZ2RHVjRkQzFoYm1Ob2IzSTlJbTFwWkdSc1pTSWdabWxzYkQwaUkwTTROVUV5UVNJK1VEd3ZkR1Y0ZEQ0S1BDOXpkbWMrIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9zdmcreG1sIn1dfQ==">
+<title>Plate — Meal Planner v4.18</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1807,5 +1833,38 @@ function getCostMultiplier(category){
 
 render();
 </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  const swCode = [
+    "const CACHE = 'plate-v4.18';",
+    "const SHELL = ['/'];",
+    "self.addEventListener('install', e => {",
+    "  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));",
+    "});",
+    "self.addEventListener('activate', e => {",
+    "  e.waitUntil(caches.keys().then(keys =>",
+    "    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))",
+    "  ).then(() => self.clients.claim()));",
+    "});",
+    "self.addEventListener('fetch', e => {",
+    "  if (e.request.method !== 'GET') return;",
+    "  e.respondWith(",
+    "    fetch(e.request).then(res => {",
+    "      const clone = res.clone();",
+    "      caches.open(CACHE).then(c => c.put(e.request, clone));",
+    "      return res;",
+    "    }).catch(() => caches.match(e.request))",
+    "  );",
+    "});",
+  ].join('\n');
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl)
+    .then(() => console.log('[Plate] PWA ready'))
+    .catch(e => console.log('[Plate] SW failed:', e));
+}
+</script>
+
 </body>
 </html>
