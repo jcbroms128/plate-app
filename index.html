@@ -894,9 +894,20 @@ function renderPlan(app) {
   ));
   if(vd) renderDayView(app,days,mealOrder);
   else renderWeekView(app,days,mealOrder);
+  var _rDays=state.plan?state.plan.days:[];
+  var _rOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
+  var _rTotal=0,_rLoaded=0;
+  _rDays.forEach(function(d){_rOrder.forEach(function(t){if(d[t]&&d[t].name&&d[t].name!=='__generating__'){_rTotal++;if(d[t].recipe)_rLoaded++;}});});
+  var _rReady=_rLoaded>=_rTotal&&_rTotal>0;
+  var _shopBtn=_rReady
+    ?'<button class="btn btn-accent btn-full" onclick="generateShopping()" style="flex:2;">Build shopping list →</button>'
+    :'<div style="flex:2;display:flex;flex-direction:column;gap:5px;">'
+     +'<button class="btn btn-accent btn-full" disabled style="opacity:0.4;cursor:not-allowed;">Build shopping list →</button>'
+     +'<div style="font-size:11px;color:var(--ink-faint);text-align:center;">Recipes loading… '+_rLoaded+' of '+_rTotal+' ready — list unlocks when complete.</div>'
+     +'</div>';
   app.appendChild(div('card fade-in',
-    '<div style="display:flex;gap:8px;">'
-    +'<button class="btn btn-accent btn-full" onclick="generateShopping()" style="flex:2;">Build shopping list →</button>'
+    '<div style="display:flex;gap:8px;align-items:flex-start;">'
+    +_shopBtn
     +(state.profile.mealPrepDay?'<button class="btn btn-outline btn-full" onclick="generatePrepGuide()" style="flex:1;">Meal Prep</button>':'')
     +'<button class="btn btn-outline btn-full" onclick="state.view=\'nutrition\';render()" style="flex:1;">Nutrition</button>'
     +'</div>'
@@ -1363,7 +1374,7 @@ function fetchAllRecipesInBackground(plan){
   var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
   var queue=[];
   (plan.days||[]).forEach(function(day,di){mealOrder.forEach(function(type){if(day[type]&&day[type].name)queue.push({di:di,type:type,meal:day[type],day:day});});});
-  queue.forEach(function(item,idx){setTimeout(function(){if(item.meal.nutrition)return;var actCtx=buildRecipeContext(item.day,item.type);var mealTypeCtx=item.type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':item.type==='breakfast'?'Meal type: breakfast.\n':item.type==='dinner'?'Meal type: dinner. IMPORTANT: The recipe MUST include at least one or two vegetables as part of the dish or as a side (e.g. roasted broccoli, sautéed spinach, mixed salad, steamed green beans). Do not omit vegetables.\n':'Meal type: '+item.type+'.\n';var prompt='Give a simple home-cook recipe for: '+item.meal.name+'\n'+(item.meal.note?'Nutrition note: '+item.meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}';callAPI(prompt,1200,function(r){if(state.plan&&state.plan.days[item.di]&&state.plan.days[item.di][item.type]){state.plan.days[item.di][item.type].recipe=r;if(r.nutrition)state.plan.days[item.di][item.type].nutrition=r.nutrition;}if(state.view==='nutrition')render();},function(){});},idx*800);});
+  queue.forEach(function(item,idx){setTimeout(function(){if(item.meal.nutrition)return;var actCtx=buildRecipeContext(item.day,item.type);var mealTypeCtx=item.type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':item.type==='breakfast'?'Meal type: breakfast.\n':item.type==='dinner'?'Meal type: dinner. IMPORTANT: The recipe MUST include at least one or two vegetables as part of the dish or as a side (e.g. roasted broccoli, sautéed spinach, mixed salad, steamed green beans). Do not omit vegetables.\n':'Meal type: '+item.type+'.\n';var prompt='Give a simple home-cook recipe for: '+item.meal.name+'\n'+(item.meal.note?'Nutrition note: '+item.meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}';callAPI(prompt,1200,function(r){if(state.plan&&state.plan.days[item.di]&&state.plan.days[item.di][item.type]){state.plan.days[item.di][item.type].recipe=r;if(r.nutrition)state.plan.days[item.di][item.type].nutrition=r.nutrition;}if(state.view==='nutrition'||state.view==='plan')render();},function(){});},idx*800);});
 }
 
 function swapMeal(di,type,rejected){state.swapping={di:di,type:type};state.editing=null;state.suggestion=null;render();var day=state.plan.days[di];var ms=state.members.map(function(m){return m.name+(m.age?' (age '+m.age+')':"")+(m.activity?': '+m.activity:"")+(m.notes?' — '+m.notes:'');}).join('; ');var rejStr=(rejected&&rejected.length)?'Do NOT suggest: '+rejected.join(', ')+'\n':'';var mealTypeHint=type==='breakfast'?'IMPORTANT: Suggest a BREAKFAST item only (e.g. eggs, oats, smoothie, toast, yogurt). Do NOT suggest a lunch or dinner meal.':type==='lunch'?'IMPORTANT: Suggest a LUNCH item only (e.g. salad, sandwich, wrap, soup, grain bowl). It should be lighter and quicker than dinner. Do NOT suggest a dinner entree.':type==='snacks'?'IMPORTANT: Suggest a SNACK only (e.g. fruit with nut butter, yogurt, nuts, energy balls). Do NOT suggest a full meal.':'IMPORTANT: Suggest a DINNER entree suitable for the whole household.';var prompt='Suggest ONE alternative '+type+' to replace "'+day[type].name+'" on '+day.day+'.\n'+mealTypeHint+'\n'+(day.event?'This day: '+day.event+'\n':'')+(state.foodNotes?'Food preferences: '+state.foodNotes+'\n':'')+(ms?'Household: '+ms+'\n':'')+rejStr+'Make it clearly different from the original.\nReply ONLY with raw JSON: {"name":"...","note":"..."}';callAPI(prompt,200,function(m){state.suggestion={di:di,type:type,meal:m};state.swapping=null;render();},function(e){state.error='Swap failed: '+e;state.swapping=null;render();});}
@@ -1725,11 +1736,19 @@ function generateShopping(){
   var days=(state.plan&&state.plan.days)||[];
   var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
   var mealList=[];
-  days.forEach(function(day){mealOrder.forEach(function(type){if(day[type]&&day[type].name)mealList.push(day[type].name);});});
+  days.forEach(function(day){mealOrder.forEach(function(type){
+    if(day[type]&&day[type].name){
+      var entry=day.day+' '+type+': '+day[type].name;
+      if(day[type].recipe&&day[type].recipe.ingredients&&day[type].recipe.ingredients.length){
+        entry+=' [ingredients: '+day[type].recipe.ingredients.join(', ')+']';
+      }
+      mealList.push(entry);
+    }
+  });});
   var householdSize=Math.max(getServings('dinner'),getServings('breakfast'),getServings('lunch')||0);
   var store=state.activeStore||(state.profile.stores&&state.profile.stores[0])||'';
   var location=state.profile.location||'US';
-  var prompt='Generate a consolidated grocery shopping list for these meals:\n'+mealList.join(', ')+'\n\nHousehold size: ~'+householdSize+' people\n'+(store?'Store: '+store+' in '+location+'\n':'Location: '+location+'\n')+'\nFORMAT: "Item name — specific descriptor (quantity unit) — $X.XX · Meal type"\nExample: "Chicken breast — boneless, skinless (2 lbs) — $8.99 · Dinner"\nALWAYS include a specific descriptor so similar items are never confused.\n\nQUANTITY CAPS:\n- chicken breast ≤ 3 lbs, eggs ≤ 2 dozen, ground beef ≤ 2 lbs, fish ≤ 2 lbs\n- yogurt ≤ 32 oz, milk ≤ 1 gallon, cheese ≤ 1 lb\n- rice ≤ 1 lb, pasta ≤ 1 lb, oats ≤ 1 lb, protein powder ≤ 1 lb\n\nPRICING: Round DOWN. Use lower end of store price ranges.\n\nCATEGORIES (strict):\n- Produce: fresh fruits/vegetables/herbs only\n- Proteins: raw meat, poultry, fish, tofu, deli meats\n- Dairy & Eggs: milk, cheese, butter, cream, yogurt, eggs\n- Pantry & Grains: dry/canned goods, grains, oils, condiments\n- Frozen: anything from the frozen aisle\n- Other: anything else\n\nSEPARATE "YouLikelyHave" array: cooking oils, common spices, protein powder, supplements, coffee, tea, flour, sugar, baking essentials. List as simple names, no price/format.\n\nReply ONLY with raw JSON:\n{"Produce":["..."],"Proteins":["..."],"Dairy & Eggs":["..."],"Pantry & Grains":["..."],"Frozen":["..."],"Other":["..."],"YouLikelyHave":["..."]}';
+  var prompt='Generate a consolidated grocery shopping list for these meals. Where ingredients are provided, use ONLY those exact ingredients — do not infer or add ingredients based on the meal name alone.\n\n'+mealList.join('\n')+'\n\nHousehold size: ~'+householdSize+' people\n'+(store?'Store: '+store+' in '+location+'\n':'Location: '+location+'\n')+'\nFORMAT: "Item name — specific descriptor (quantity unit) — $X.XX · Meal type"\nExample: "Chicken breast — boneless, skinless (2 lbs) — $8.99 · Dinner"\nALWAYS include a specific descriptor so similar items are never confused.\n\nQUANTITY CAPS:\n- chicken breast ≤ 3 lbs, eggs ≤ 2 dozen, ground beef ≤ 2 lbs, fish ≤ 2 lbs\n- yogurt ≤ 32 oz, milk ≤ 1 gallon, cheese ≤ 1 lb\n- rice ≤ 1 lb, pasta ≤ 1 lb, oats ≤ 1 lb, protein powder ≤ 1 lb\n\nPRICING: Round DOWN. Use lower end of store price ranges.\n\nCATEGORIES (strict):\n- Produce: fresh fruits/vegetables/herbs only\n- Proteins: raw meat, poultry, fish, tofu, deli meats\n- Dairy & Eggs: milk, cheese, butter, cream, yogurt, eggs\n- Pantry & Grains: dry/canned goods, grains, oils, condiments\n- Frozen: anything from the frozen aisle\n- Other: anything else\n\nSEPARATE "YouLikelyHave" array: cooking oils, common spices, protein powder, supplements, coffee, tea, flour, sugar, baking essentials. List as simple names, no price/format.\n\nReply ONLY with raw JSON:\n{"Produce":["..."],"Proteins":["..."],"Dairy & Eggs":["..."],"Pantry & Grains":["..."],"Frozen":["..."],"Other":["..."],"YouLikelyHave":["..."]}';
   callAPI(prompt,2500,function(shopping){var likelyItems=shopping['YouLikelyHave']||[];delete shopping['YouLikelyHave'];var cleaned={};Object.keys(shopping).forEach(function(k){if(shopping[k]&&shopping[k].length)cleaned[k]=shopping[k];});var activeStaples=(state.profile.staples||[]).filter(function(s){return s.active;}).map(function(s){return s.name;});activeStaples.forEach(function(s){if(likelyItems.indexOf(s)===-1)likelyItems.push(s);});state.shopping=cleaned;state.shoppingLikely=likelyItems;state.checkedItems={};state.shoppingCosts={};state.view='shopping';render();parseInlineCosts(cleaned);},function(e){state.view='plan';state.error='Could not build shopping list: '+e;render();});}
 
 function parseInlineCosts(shopping){
