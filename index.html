@@ -5,16 +5,6 @@
   ============================================================
   VERSION HISTORY
   ============================================================
-  v4.18 — 2026-04-18
-    WHAT'S NEW:
-    1. Progressive Web App (PWA) support:
-       - App installs to iPhone/Android home screen via
-         Safari > Share > Add to Home Screen.
-       - Plate icon and branding on home screen.
-       - Launches full-screen, no browser chrome.
-       - Service worker for faster loads and offline resilience.
-
-  ============================================================
   v4.13 — 2026-03-25
     WHAT'S NEW:
     1. Plan persistence:
@@ -48,16 +38,6 @@
          (e.g. "Cook brown rice → Monday dinner + Wed lunch").
        • Checkable tasks, same pattern as shopping list.
        • Loading state and back-to-plan navigation.
-
-  ============================================================
-  v4.18 — 2026-04-18
-    WHAT'S NEW:
-    1. Progressive Web App (PWA) support:
-       - App installs to iPhone/Android home screen via
-         Safari > Share > Add to Home Screen.
-       - Plate icon and branding on home screen.
-       - Launches full-screen, no browser chrome.
-       - Service worker for faster loads and offline resilience.
 
   ============================================================
   v4.13 — 2026-03-25
@@ -249,13 +229,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Plate">
-<meta name="theme-color" content="#C85A2A">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiB2aWV3Qm94PSIwIDAgMTkyIDE5MiI+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MCIgZmlsbD0iI0M4NUEyQSIvPgogIDxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9IjYyIiBmaWxsPSIjRjdGNEVGIi8+CiAgPHRleHQgeD0iOTYiIHk9IjExOCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iODAiIGZvbnQtd2VpZ2h0PSIzMDAiIGZvbnQtc3R5bGU9Iml0YWxpYyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iI0M4NUEyQSI+UDwvdGV4dD4KPC9zdmc+">
-<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlBsYXRlIFx1MjAxNCBNZWFsIFBsYW5uZXIiLCAic2hvcnRfbmFtZSI6ICJQbGF0ZSIsICJkZXNjcmlwdGlvbiI6ICJBSS1wb3dlcmVkIGhvdXNlaG9sZCBtZWFsIHBsYW5uaW5nIiwgInN0YXJ0X3VybCI6ICIvIiwgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNGN0Y0RUYiLCAidGhlbWVfY29sb3IiOiAiI0M4NUEyQSIsICJvcmllbnRhdGlvbiI6ICJwb3J0cmFpdCIsICJpY29ucyI6IFt7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXhPVElpSUdobGFXZG9kRDBpTVRreUlpQjJhV1YzUW05NFBTSXdJREFnTVRreUlERTVNaUkrQ2lBZ1BISmxZM1FnZDJsa2RHZzlJakU1TWlJZ2FHVnBaMmgwUFNJeE9USWlJSEo0UFNJME1DSWdabWxzYkQwaUkwTTROVUV5UVNJdlBnb2dJRHhqYVhKamJHVWdZM2c5SWprMklpQmplVDBpT1RZaUlISTlJall5SWlCbWFXeHNQU0lqUmpkR05FVkdJaTgrQ2lBZ1BIUmxlSFFnZUQwaU9UWWlJSGs5SWpFeE9DSWdabTl1ZEMxbVlXMXBiSGs5SWtkbGIzSm5hV0VzYzJWeWFXWWlJR1p2Ym5RdGMybDZaVDBpT0RBaUlHWnZiblF0ZDJWcFoyaDBQU0l6TURBaUlHWnZiblF0YzNSNWJHVTlJbWwwWVd4cFl5SWdkR1Y0ZEMxaGJtTm9iM0k5SW0xcFpHUnNaU0lnWm1sc2JEMGlJME00TlVFeVFTSStVRHd2ZEdWNGRENEtQQzl6ZG1jKyIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9LCB7InNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSTFNVElpSUdobGFXZG9kRDBpTlRFeUlpQjJhV1YzUW05NFBTSXdJREFnTlRFeUlEVXhNaUkrQ2lBZ1BISmxZM1FnZDJsa2RHZzlJalV4TWlJZ2FHVnBaMmgwUFNJMU1USWlJSEo0UFNJeE1EQWlJR1pwYkd3OUlpTkRPRFZCTWtFaUx6NEtJQ0E4WTJseVkyeGxJR040UFNJeU5UWWlJR041UFNJeU5UWWlJSEk5SWpFMk5pSWdabWxzYkQwaUkwWTNSalJGUmlJdlBnb2dJRHgwWlhoMElIZzlJakkxTmlJZ2VUMGlNekU0SWlCbWIyNTBMV1poYldsc2VUMGlSMlZ2Y21kcFlTeHpaWEpwWmlJZ1ptOXVkQzF6YVhwbFBTSXlNVEFpSUdadmJuUXRkMlZwWjJoMFBTSXpNREFpSUdadmJuUXRjM1I1YkdVOUltbDBZV3hwWXlJZ2RHVjRkQzFoYm1Ob2IzSTlJbTFwWkdSc1pTSWdabWxzYkQwaUkwTTROVUV5UVNJK1VEd3ZkR1Y0ZEQ0S1BDOXpkbWMrIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9zdmcreG1sIn1dfQ==">
-<title>Plate — Meal Planner v4.18</title>
+<title>Plate — Meal Planner v4.17</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1389,12 +1363,12 @@ function fetchAllRecipesInBackground(plan){
   var mealOrder=['breakfast','lunch','dinner','snacks'].filter(function(m){return state.mealTypes.has(m);});
   var queue=[];
   (plan.days||[]).forEach(function(day,di){mealOrder.forEach(function(type){if(day[type]&&day[type].name)queue.push({di:di,type:type,meal:day[type],day:day});});});
-  queue.forEach(function(item,idx){setTimeout(function(){if(item.meal.nutrition)return;var actCtx=buildRecipeContext(item.day,item.type);var mealTypeCtx=item.type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':item.type==='breakfast'?'Meal type: breakfast.\n':'Meal type: '+item.type+'.\n';var prompt='Give a simple home-cook recipe for: '+item.meal.name+'\n'+(item.meal.note?'Nutrition note: '+item.meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}';callAPI(prompt,1200,function(r){if(state.plan&&state.plan.days[item.di]&&state.plan.days[item.di][item.type]){state.plan.days[item.di][item.type].recipe=r;if(r.nutrition)state.plan.days[item.di][item.type].nutrition=r.nutrition;}if(state.view==='nutrition')render();},function(){});},idx*800);});
+  queue.forEach(function(item,idx){setTimeout(function(){if(item.meal.nutrition)return;var actCtx=buildRecipeContext(item.day,item.type);var mealTypeCtx=item.type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':item.type==='breakfast'?'Meal type: breakfast.\n':item.type==='dinner'?'Meal type: dinner. IMPORTANT: The recipe MUST include at least one or two vegetables as part of the dish or as a side (e.g. roasted broccoli, sautéed spinach, mixed salad, steamed green beans). Do not omit vegetables.\n':'Meal type: '+item.type+'.\n';var prompt='Give a simple home-cook recipe for: '+item.meal.name+'\n'+(item.meal.note?'Nutrition note: '+item.meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}';callAPI(prompt,1200,function(r){if(state.plan&&state.plan.days[item.di]&&state.plan.days[item.di][item.type]){state.plan.days[item.di][item.type].recipe=r;if(r.nutrition)state.plan.days[item.di][item.type].nutrition=r.nutrition;}if(state.view==='nutrition')render();},function(){});},idx*800);});
 }
 
-function swapMeal(di,type,rejected){state.swapping={di:di,type:type};state.editing=null;state.suggestion=null;render();var day=state.plan.days[di];var ms=state.members.map(function(m){return m.name+(m.age?' (age '+m.age+')':"")+(m.activity?': '+m.activity:"")+(m.notes?' — '+m.notes:'');}).join('; ');var rejStr=(rejected&&rejected.length)?'Do NOT suggest: '+rejected.join(', ')+'\n':'';var prompt='Suggest ONE alternative meal to replace "'+day[type].name+'" for '+type+' on '+day.day+'.\n'+(day.event?'This day: '+day.event+'\n':'')+(state.foodNotes?'Food preferences: '+state.foodNotes+'\n':'')+(ms?'Household: '+ms+'\n':'')+rejStr+'Make it clearly different.\nReply ONLY with raw JSON: {"name":"...","note":"..."}';callAPI(prompt,200,function(m){state.suggestion={di:di,type:type,meal:m};state.swapping=null;render();},function(e){state.error='Swap failed: '+e;state.swapping=null;render();});}
+function swapMeal(di,type,rejected){state.swapping={di:di,type:type};state.editing=null;state.suggestion=null;render();var day=state.plan.days[di];var ms=state.members.map(function(m){return m.name+(m.age?' (age '+m.age+')':"")+(m.activity?': '+m.activity:"")+(m.notes?' — '+m.notes:'');}).join('; ');var rejStr=(rejected&&rejected.length)?'Do NOT suggest: '+rejected.join(', ')+'\n':'';var mealTypeHint=type==='breakfast'?'IMPORTANT: Suggest a BREAKFAST item only (e.g. eggs, oats, smoothie, toast, yogurt). Do NOT suggest a lunch or dinner meal.':type==='lunch'?'IMPORTANT: Suggest a LUNCH item only (e.g. salad, sandwich, wrap, soup, grain bowl). It should be lighter and quicker than dinner. Do NOT suggest a dinner entree.':type==='snacks'?'IMPORTANT: Suggest a SNACK only (e.g. fruit with nut butter, yogurt, nuts, energy balls). Do NOT suggest a full meal.':'IMPORTANT: Suggest a DINNER entree suitable for the whole household.';var prompt='Suggest ONE alternative '+type+' to replace "'+day[type].name+'" on '+day.day+'.\n'+mealTypeHint+'\n'+(day.event?'This day: '+day.event+'\n':'')+(state.foodNotes?'Food preferences: '+state.foodNotes+'\n':'')+(ms?'Household: '+ms+'\n':'')+rejStr+'Make it clearly different from the original.\nReply ONLY with raw JSON: {"name":"...","note":"..."}';callAPI(prompt,200,function(m){state.suggestion={di:di,type:type,meal:m};state.swapping=null;render();},function(e){state.error='Swap failed: '+e;state.swapping=null;render();});}
 
-function loadRecipe(di,type){var meal=state.plan.days[di][type];var day=state.plan.days[di];state.recipeDi=di;state.recipeType=type;if(meal.recipe){state.recipe=meal.recipe;state.view='recipe';render();return;}state.view='recipe-loading';render();var actCtx=buildRecipeContext(day,type);var mealTypeCtx=type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':type==='breakfast'?'Meal type: breakfast.\n':'Meal type: '+type+'.\n';var prompt='Give a simple home-cook recipe for: '+meal.name+'\n'+(meal.note?'Nutrition note: '+meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}\n\nNutrition values per serving.';callAPI(prompt,1200,function(r){meal.recipe=r;if(r.nutrition)meal.nutrition=r.nutrition;state.recipe=r;state.view='recipe';render();},function(e){state.view='plan';state.error='Could not load recipe: '+e;render();});}
+function loadRecipe(di,type){var meal=state.plan.days[di][type];var day=state.plan.days[di];state.recipeDi=di;state.recipeType=type;if(meal.recipe){state.recipe=meal.recipe;state.view='recipe';render();return;}state.view='recipe-loading';render();var actCtx=buildRecipeContext(day,type);var mealTypeCtx=type==='snacks'?'Meal type: snack — this should be a simple snack (e.g. fruit with nut butter, yogurt, energy balls), NOT a full cooked meal.\n':type==='breakfast'?'Meal type: breakfast.\n':type==='dinner'?'Meal type: dinner. IMPORTANT: The recipe MUST include at least one or two vegetables as part of the dish or as a side (e.g. roasted broccoli, sautéed spinach, mixed salad, steamed green beans). Do not omit vegetables.\n':'Meal type: '+type+'.\n';var prompt='Give a simple home-cook recipe for: '+meal.name+'\n'+(meal.note?'Nutrition note: '+meal.note+'\n':'')+mealTypeCtx+(actCtx||'')+'Reply ONLY with raw JSON, no markdown:\n{"title":"...","servings":"...","time":"...","ingredients":["..."],"steps":["..."],"tip":"...","nutrition":{"calories":0,"protein_g":0,"carbs_g":0,"fat_g":0,"sugar_g":0}}\n\nNutrition values per serving.';callAPI(prompt,1200,function(r){meal.recipe=r;if(r.nutrition)meal.nutrition=r.nutrition;state.recipe=r;state.view='recipe';render();},function(e){state.view='plan';state.error='Could not load recipe: '+e;render();});}
 
 
 // ── Prep Guide ──
@@ -1833,38 +1807,5 @@ function getCostMultiplier(category){
 
 render();
 </script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  const swCode = [
-    "const CACHE = 'plate-v4.18';",
-    "const SHELL = ['/'];",
-    "self.addEventListener('install', e => {",
-    "  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));",
-    "});",
-    "self.addEventListener('activate', e => {",
-    "  e.waitUntil(caches.keys().then(keys =>",
-    "    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))",
-    "  ).then(() => self.clients.claim()));",
-    "});",
-    "self.addEventListener('fetch', e => {",
-    "  if (e.request.method !== 'GET') return;",
-    "  e.respondWith(",
-    "    fetch(e.request).then(res => {",
-    "      const clone = res.clone();",
-    "      caches.open(CACHE).then(c => c.put(e.request, clone));",
-    "      return res;",
-    "    }).catch(() => caches.match(e.request))",
-    "  );",
-    "});",
-  ].join('\n');
-  const blob = new Blob([swCode], {type: 'application/javascript'});
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl)
-    .then(() => console.log('[Plate] PWA ready'))
-    .catch(e => console.log('[Plate] SW failed:', e));
-}
-</script>
-
 </body>
 </html>
